@@ -1,0 +1,14 @@
+align.openParenCallSite = false
+align.openParenDefnSite = false
+danglingParentheses = true
+binPack.parentConstructors = false
+continuationIndent.defnSite = 2
+importSelectors = singleLine
+includeCurlyBraceInSelectChains = false
+maxColumn = 120
+newlines.penalizeSingleSelectMultiArgList = false
+newlines.alwaysBeforeCurlyBraceLambdaParams = false
+newlines.alwaysBeforeElseAfterCurlyIf = false
+optIn.breakChainOnFirstMethodDot = false
+rewrite.rules = [PreferCurlyFors, SortImports, RedundantParens]
+align.tokens = []
