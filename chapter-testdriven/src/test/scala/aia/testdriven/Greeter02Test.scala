@@ -1,10 +1,8 @@
 package aia.testdriven
 
-import akka.testkit.{ TestKit }
-import org.scalatest.WordSpecLike
 import akka.actor._
-
-
+import akka.testkit.TestKit
+import org.scalatest.WordSpecLike
 
 class Greeter02Test extends TestKit(ActorSystem("testsystem"))
   with WordSpecLike
@@ -17,6 +15,7 @@ class Greeter02Test extends TestKit(ActorSystem("testsystem"))
       greeter ! Greeting("World")
       expectMsg("Hello World!")
     }
+
     "say something else and see what happens" in {
       val props = Greeter02.props(Some(testActor))
       val greeter = system.actorOf(props, "greeter02-2")
@@ -29,15 +28,16 @@ class Greeter02Test extends TestKit(ActorSystem("testsystem"))
 
 
 object Greeter02 {
-  def props(listener: Option[ActorRef] = None) =
-    Props(new Greeter02(listener))
+  def props(listener: Option[ActorRef] = None) = Props(new Greeter02(listener))
 }
-class Greeter02(listener: Option[ActorRef])
-  extends Actor with ActorLogging {
-  def receive = {
+
+
+class Greeter02(listener: Option[ActorRef]) extends Actor with ActorLogging {
+  def receive: Receive = {
     case Greeting(who) =>
       val message = "Hello " + who + "!"
       log.info(message)
+      //note: sends message to lister for testing purpose
       listener.foreach(_ ! message)
   }
 }

@@ -1,11 +1,9 @@
 package aia.testdriven
-import akka.testkit.{ CallingThreadDispatcher, EventFilter, TestKit }
-import akka.actor.{ Props, ActorSystem }
+import aia.testdriven.Greeter01Test._
+import akka.actor.{ActorSystem, Props}
+import akka.testkit.{CallingThreadDispatcher, EventFilter, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.WordSpecLike
-
-
-import Greeter01Test._
 
 class Greeter01Test extends TestKit(testSystem)
   with WordSpecLike
@@ -25,7 +23,7 @@ class Greeter01Test extends TestKit(testSystem)
 }
 
 object Greeter01Test {
-  val testSystem = {
+  val testSystem: ActorSystem = {
     val config = ConfigFactory.parseString(
       """
          akka.loggers = [akka.testkit.TestEventListener]

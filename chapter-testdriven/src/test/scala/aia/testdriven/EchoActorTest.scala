@@ -22,10 +22,13 @@ class EchoActorTest extends TestKit(ActorSystem("testsystem"))
 
       import akka.pattern.ask
       import scala.concurrent.duration._
+
       implicit val timeout = Timeout(3 seconds)
       implicit val ec = system.dispatcher
       val echo = system.actorOf(Props[EchoActor], "echo1")
-      val future = echo.ask("some message")
+
+      val future = echo ? "some message"
+
       future.onComplete {
         case Failure(_)   => //handle failure
         case Success(msg) => //handle success
@@ -46,7 +49,7 @@ class EchoActorTest extends TestKit(ActorSystem("testsystem"))
 
 
 class EchoActor extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg =>
       sender() ! msg
   }
