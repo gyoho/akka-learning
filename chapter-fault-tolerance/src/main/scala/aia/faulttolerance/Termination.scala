@@ -7,10 +7,9 @@ object DbStrategy2 {
 
   class DbWatcher(dbWriter: ActorRef) extends Actor with ActorLogging {
     context.watch(dbWriter)
-    def receive = {
+    def receive: Receive = {
       case Terminated(actorRef) =>
         log.warning("Actor {} terminated", actorRef)
     }
   }
-
 }

@@ -5,7 +5,10 @@ import akka.actor._
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 
-class LifeCycleHooksTest extends TestKit(ActorSystem("LifCycleTest")) with WordSpecLike with BeforeAndAfterAll {
+class LifeCycleHooksTest
+    extends TestKit(ActorSystem("LifCycleTest"))
+    with WordSpecLike
+    with BeforeAndAfterAll {
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -13,8 +16,8 @@ class LifeCycleHooksTest extends TestKit(ActorSystem("LifCycleTest")) with WordS
 
   "The Child" must {
     "log lifecycle hooks" in {
-      val testActorRef = system.actorOf(
-        Props[LifeCycleHooks], "LifeCycleHooks")
+      val props = Props[LifeCycleHooks]
+      val testActorRef = system.actorOf(props, "LifeCycleHooks")
       watch(testActorRef)
       testActorRef ! ForceRestart
       testActorRef.tell(SampleMessage, testActor)
