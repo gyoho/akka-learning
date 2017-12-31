@@ -76,7 +76,7 @@ class MonitorMailboxTest extends WordSpecLike with BeforeAndAfterAll
 }
 
 class ProcessTestActor(serviceTime: Duration) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case _ => {
       Thread.sleep(serviceTime.toMillis)
     }

@@ -10,7 +10,7 @@ case class ActorStatistics(receiver: String,
 
 trait MonitorActor extends Actor {
 
-  abstract override def receive = {
+  abstract override def receive: Receive = {
     case m: Any => {
       val start = System.currentTimeMillis()
       super.receive(m)

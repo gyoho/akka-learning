@@ -7,7 +7,7 @@ import monitor.StatisticsSummary
 case class SystemMessage(start: Long = 0, duration: Long = 0, id: String = "")
 
 class ProcessRequest(serviceTime: Duration, next: ActorRef) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: SystemMessage => {
       //simulate processing
       Thread.sleep(serviceTime.toMillis)
@@ -18,7 +18,7 @@ class ProcessRequest(serviceTime: Duration, next: ActorRef) extends Actor {
 }
 
 class ProcessCPURequest(serviceTime: Duration, next: ActorRef) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: SystemMessage => {
       //simulate processing by doing some calculations
       var tmp = math.Pi
@@ -39,7 +39,7 @@ class ProcessCPURequest(serviceTime: Duration, next: ActorRef) extends Actor {
 
 class PrintMsg extends Actor {
   var receivedStats: Seq[List[StatisticsSummary]] = Seq()
-  def receive = {
+  def receive: Receive = {
     case "print" => {
       println("!!!!!!PRINT!!!!!!!! nr=%d".format(receivedStats.size))
 

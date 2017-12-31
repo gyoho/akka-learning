@@ -125,7 +125,7 @@ class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int)
   extends Actor {
 
   var nrLeft = totalNrBooks
-  def receive = {
+  def receive: Receive = {
     case PublisherRequest => {
       if (nrLeft == 0)
         sender() ! BookSupplySoldOut

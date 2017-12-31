@@ -6,7 +6,7 @@ import akka.actor.{ Actor, ActorRef }
 case class Photo(license: String, speed: Int)
 
 class SpeedFilter(minSpeed: Int, pipe: ActorRef) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: Photo =>
       if (msg.speed > minSpeed)
         pipe ! msg
@@ -14,7 +14,7 @@ class SpeedFilter(minSpeed: Int, pipe: ActorRef) extends Actor {
 }
 
 class LicenseFilter(pipe: ActorRef) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: Photo =>
       if (!msg.license.isEmpty)
         pipe ! msg

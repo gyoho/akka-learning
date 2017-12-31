@@ -7,7 +7,7 @@ case class StateEvent(time: Date, state: String)
 case class Connection(time: Date, connected: Boolean)
 
 class StateEndpoint extends Actor {
-  def receive = {
+  def receive: Receive = {
     case Connection(time, true) => {
       context.system.eventStream.publish(new StateEvent(time, "Connected"))
     }
@@ -18,14 +18,14 @@ class StateEndpoint extends Actor {
 }
 
 class SystemLog extends Actor {
-  def receive = {
+  def receive: Receive = {
     case event: StateEvent => {
     }
   }
 }
 
 class SystemMonitor extends Actor {
-  def receive = {
+  def receive: Receive = {
     case event: StateEvent => {
     }
   }

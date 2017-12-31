@@ -49,7 +49,7 @@ object ImageProcessing {
 }
 
 class GetSpeed(pipe: ActorRef) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: PhotoMessage => {
       pipe ! msg.copy(
         speed = ImageProcessing.getSpeed(msg.photo))
@@ -57,7 +57,7 @@ class GetSpeed(pipe: ActorRef) extends Actor {
   }
 }
 class GetTime(pipe: ActorRef) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: PhotoMessage => {
       pipe ! msg.copy(creationTime =
         ImageProcessing.getTime(msg.photo))
@@ -68,7 +68,7 @@ class GetTime(pipe: ActorRef) extends Actor {
 
 
 class RecipientList(recipientList: Seq[ActorRef]) extends Actor {
-  def receive = {
+  def receive: Receive = {
     case msg: AnyRef => recipientList.foreach(_ ! msg)
   }
 }
@@ -88,7 +88,7 @@ class Aggregator(timeout: FiniteDuration, pipe: ActorRef)
     messages.clear()
   }
 
-  def receive = {
+  def receive: Receive = {
     case rcvMsg: PhotoMessage => {
       messages.find(_.id == rcvMsg.id) match {
         case Some(alreadyRcvMsg) => {

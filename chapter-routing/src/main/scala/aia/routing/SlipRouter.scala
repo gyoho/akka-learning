@@ -38,7 +38,7 @@ trait RouteSlip {
 
 
 class PaintCar(color: String) extends Actor with RouteSlip {
-  def receive = {
+  def receive: Receive = {
     case RouteSlipMessage(routeSlip, car: Car) => {
       sendMessageToNextTask(routeSlip,
         car.copy(color = color))
@@ -47,7 +47,7 @@ class PaintCar(color: String) extends Actor with RouteSlip {
 }
 
 class AddNavigation() extends Actor with RouteSlip {
-  def receive = {
+  def receive: Receive = {
     case RouteSlipMessage(routeSlip, car: Car) => {
       sendMessageToNextTask(routeSlip,
         car.copy(hasNavigation = true))
@@ -56,7 +56,7 @@ class AddNavigation() extends Actor with RouteSlip {
 }
 
 class AddParkingSensors() extends Actor with RouteSlip {
-  def receive = {
+  def receive: Receive = {
     case RouteSlipMessage(routeSlip, car: Car) => {
       sendMessageToNextTask(routeSlip,
         car.copy(hasParkingSensors = true))
@@ -76,7 +76,7 @@ class SlipRouter(endStep: ActorRef) extends Actor with RouteSlip {
   val addParkingSensor = context.actorOf(
     Props[AddParkingSensors], "parkingSensors")
 
-  def receive = {
+  def receive: Receive = {
     case order: Order => {
       val routeSlip = createRouteSlip(order.options)
 

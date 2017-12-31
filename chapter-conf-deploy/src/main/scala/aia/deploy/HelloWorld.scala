@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 class HelloWorld extends Actor
   with ActorLogging {
 
-  def receive = {
+  def receive: Receive = {
     case msg: String  =>
       val hello = "Hello %s".format(msg)
       sender() ! hello
@@ -32,7 +32,7 @@ class HelloWorldCaller(timer: FiniteDuration, actor: ActorRef)
       new TimerTick("everybody"))
   }
 
-  def receive = {
+  def receive: Receive = {
     case msg: String  => log.info("received {}",msg)
     case tick: TimerTick => actor ! tick.msg
   }

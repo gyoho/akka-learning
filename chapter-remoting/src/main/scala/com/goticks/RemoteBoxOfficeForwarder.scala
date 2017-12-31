@@ -26,7 +26,7 @@ class RemoteBoxOfficeForwarder(implicit timeout: Timeout)
     context.setReceiveTimeout(Duration.Undefined)
   }
 
-  def receive = deploying
+  def receive: Receive = deploying
 
   def deploying: Receive = {
 

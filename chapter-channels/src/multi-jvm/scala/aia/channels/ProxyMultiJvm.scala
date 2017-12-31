@@ -90,7 +90,7 @@ class ReliableProxySample
 
       runOn(server) {
         system.actorOf(Props(new Actor {
-          def receive = {
+          def receive: Receive = {
             case msg: AnyRef => {
               sender() ! msg
             }

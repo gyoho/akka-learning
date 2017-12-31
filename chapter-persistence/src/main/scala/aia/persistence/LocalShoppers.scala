@@ -9,7 +9,7 @@ object LocalShoppers {
 
 class LocalShoppers extends Actor
     with ShopperLookup {
-  def receive = forwardToShopper
+  def receive: Receive = forwardToShopper
 }
 
 trait ShopperLookup {

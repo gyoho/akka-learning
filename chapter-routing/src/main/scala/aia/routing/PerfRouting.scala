@@ -4,7 +4,7 @@ import akka.actor._
 import akka.routing._
 
 class TestSuper() extends Actor {
-  def receive = {
+  def receive: Receive = {
     case "OK" =>
     case _ => throw new IllegalArgumentException("not supported")
   }
@@ -25,7 +25,7 @@ class GetLicenseCreator(nrActors: Int, nextStep: ActorRef) extends Actor {
     })
   }
 
-  def receive = {
+  def receive: Receive = {
     case "KillFirst" => {
       createdActors.headOption.foreach(_ ! Kill)
       createdActors = createdActors.tail
@@ -49,7 +49,7 @@ class GetLicenseCreator2(nrActors: Int, nextStep: ActorRef) extends Actor {
     })
   }
 
-  def receive = {
+  def receive: Receive = {
     case "KillFirst" => {
       if(!context.children.isEmpty) {
         context.children.head ! PoisonPill
@@ -83,7 +83,7 @@ class WrongDynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef) ext
     router ! AddRoutee(ActorRefRoutee(child))
   }
 
-  def receive = {
+  def receive: Receive = {
     case PreferredSize(size) => {
       if (size < nrChildren) {
         //remove
@@ -138,7 +138,7 @@ class DynamicRouteeSizer(nrActors: Int,
     context.watch(child)
   }
 
-  def receive = {
+  def receive: Receive = {
     case PreferredSize(size) => {
       if (size < nrChildren) {
         //remove
@@ -198,7 +198,7 @@ class DynamicRouteeSizer2(nrActors: Int, props: Props, router: ActorRef) extends
     println("Add routee "+ child)
   }
 
-  def receive = {
+  def receive: Receive = {
     case PreferredSize(size) => {
       val currentNumber = context.children.size
       if (size < currentNumber) {

@@ -32,7 +32,7 @@ class CalculatorHistory extends Actor {
 
   var history = History()
   
-  def receive = {
+  def receive: Receive = {
     case event: Added => history = history.incrementAdded
     case event: Subtracted => history = history.incrementSubtracted
     case event: Divided => history = history.incrementDivided

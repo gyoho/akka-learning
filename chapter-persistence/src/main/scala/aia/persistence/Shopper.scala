@@ -28,7 +28,7 @@ class Shopper extends Actor {
   val wallet = context.actorOf(Wallet.props(shopperId, cash),
     Wallet.name(shopperId))
 
-  def receive = {
+  def receive: Receive = {
     case cmd: Basket.Command => basket forward cmd
     case cmd: Wallet.Command => wallet forward cmd
 

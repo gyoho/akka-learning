@@ -22,7 +22,7 @@ class JobWorker extends Actor
 
   var processed = 0
 
-  def receive = idle
+  def receive: Receive = idle
 
   def idle: Receive = {
     case Work(jobName, master) =>

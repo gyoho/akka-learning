@@ -23,7 +23,7 @@ class ProcessOrders extends Actor {
   val orderList = new mutable.HashMap[Long, TrackingOrder]()
   var lastOrderId = 0L
 
-  def receive = {
+  def receive: Receive = {
     case order: Order => {
       lastOrderId += 1
       val newOrder = new TrackingOrder(lastOrderId, "received", order)
@@ -51,7 +51,7 @@ class OrderConsumerRest(uri: String, next: ActorRef)
   def endpointUri = uri
 
 
-  def receive = {
+  def receive: Receive = {
     case msg: CamelMessage => {
       try {
         val action = msg.headerAs[String](Exchange.HTTP_METHOD)

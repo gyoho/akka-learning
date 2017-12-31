@@ -17,7 +17,7 @@ case class GatherMessageWithHash(id: String, values: Seq[String]) extends Gather
 
 class SimpleGather(nextStep: ActorRef) extends Actor {
   var messages = Map[String, GatherMessage]()
-  def receive = {
+  def receive: Receive = {
     case msg: GatherMessage => {
       messages.get(msg.id) match {
         case Some(previous) => {

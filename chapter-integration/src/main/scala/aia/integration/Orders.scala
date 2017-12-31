@@ -17,7 +17,7 @@ class OrderConsumerJson(uri: String, next: ActorRef)
 
   implicit val formats = DefaultFormats
 
-  def receive = {
+  def receive: Receive = {
     case msg: CamelMessage => {
       val content = msg.bodyAs[String]
       val order = Serialization.read[Order](content)
@@ -32,7 +32,7 @@ class OrderConsumerXml(uri: String, next: ActorRef)
 
   def endpointUri = uri
 
-  def receive = {
+  def receive: Receive = {
     case msg: CamelMessage => {
       val content = msg.bodyAs[String]
       val xml = XML.loadString(content)
@@ -52,7 +52,7 @@ class OrderConfirmConsumerXml(uri: String, next: ActorRef)
 
   def endpointUri = uri
 
-  def receive = {
+  def receive: Receive = {
     case msg: CamelMessage => {
       try {
         val content = msg.bodyAs[String]

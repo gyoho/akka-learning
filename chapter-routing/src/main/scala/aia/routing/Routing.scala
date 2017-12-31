@@ -20,7 +20,7 @@ class GetLicense(pipe: ActorRef, initialServiceTime: FiniteDuration = 0 millis)
   var id = self.path.name
   var serviceTime = initialServiceTime
 
-  def receive = {
+  def receive: Receive = {
     case init: SetService => {
       id = init.id
       serviceTime = init.serviceTime
@@ -39,7 +39,7 @@ class GetLicense(pipe: ActorRef, initialServiceTime: FiniteDuration = 0 millis)
 
 class RedirectActor(pipe: ActorRef) extends Actor {
   println("RedirectActor instance created")
-  def receive = {
+  def receive: Receive = {
     case msg: AnyRef => {
       pipe ! msg
     }
@@ -116,7 +116,7 @@ class SwitchRouter(normalFlow: ActorRef, cleanUp: ActorRef)
       cleanUp ! msg
     }
   }
-  def receive = {
+  def receive: Receive = {
     case msg: AnyRef => off(msg)
   }
 }
@@ -143,7 +143,7 @@ class SwitchRouter2(normalFlow: ActorRef, cleanUp: ActorRef)
       cleanUp ! msg
     }
   }
-  def receive = {
+  def receive: Receive = {
     case msg: AnyRef => off(msg)
   }
 }

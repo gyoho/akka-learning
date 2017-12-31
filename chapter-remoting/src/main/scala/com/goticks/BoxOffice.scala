@@ -30,7 +30,7 @@ class BoxOffice(implicit timeout: Timeout) extends Actor {
   def createTicketSeller(name: String) =
     context.actorOf(TicketSeller.props(name), name)
 
-  def receive = {
+  def receive: Receive = {
     case CreateEvent(name, tickets) =>
       def create() = {
         val eventTickets = createTicketSeller(name)

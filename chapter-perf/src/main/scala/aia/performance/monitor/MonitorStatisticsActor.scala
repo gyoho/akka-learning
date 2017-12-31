@@ -9,7 +9,7 @@ class MonitorStatisticsActor(period: Duration, processMargin: Long,
   private var listMailbox = List[MailboxStatistics]()
   private var listActor = List[ActorStatistics]()
 
-  def receive = {
+  def receive: Receive = {
     case mailbox: MailboxStatistics => {
       listMailbox = listMailbox :+ mailbox
       process(mailbox.exitTime)

@@ -40,7 +40,7 @@ class JobMaster extends Actor
   override def supervisorStrategy: SupervisorStrategy =
     SupervisorStrategy.stoppingStrategy
 
-  def receive = idle
+  def receive: Receive = idle
 
   def idle: Receive = {
     case StartJob(jobName, text) =>

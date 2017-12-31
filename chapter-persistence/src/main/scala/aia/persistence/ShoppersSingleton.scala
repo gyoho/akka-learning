@@ -35,7 +35,7 @@ class ShoppersSingleton extends Actor {
     )
   )
 
-  def receive = {
+  def receive: Receive = {
     case command: Shopper.Command => shoppers forward command
   }
 }

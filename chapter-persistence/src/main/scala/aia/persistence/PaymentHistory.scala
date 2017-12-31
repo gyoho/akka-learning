@@ -34,7 +34,7 @@ class PaymentHistory(shopperId: Long) extends Actor
 
   var history = History()
 
-  def receive = {
+  def receive: Receive = {
     case Wallet.Paid(items, _) => history = history.paid(items)
     case GetHistory => sender() ! history
   }

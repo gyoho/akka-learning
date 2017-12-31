@@ -37,7 +37,7 @@ class JobReceptionist extends Actor
   val maxRetries = 3
 
 
-  def receive = {
+  def receive: Receive = {
     case jr @ JobRequest(name, text) =>
       log.info(s"Received job $name")
 

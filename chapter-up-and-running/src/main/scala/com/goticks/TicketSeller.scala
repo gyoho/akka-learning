@@ -20,7 +20,7 @@ class TicketSeller(event: String) extends Actor {
 
   var tickets = Vector.empty[Ticket]
 
-  def receive = {
+  def receive: Receive = {
     case Add(newTickets) => tickets = tickets ++ newTickets
     case Buy(nrOfTickets) =>
       val entries = tickets.take(nrOfTickets)
