@@ -12,19 +12,19 @@ class GetTicketInfoSpec extends WordSpec with MustMatchers {
 
   "getTicketInfo" must {
     "return a complete ticket info when all futures are successful" in {
-      val ticketInfo = Await.result(getTicketInfo("1234", Location(1d,2d)), 10.seconds)
+      val ticketInfo = Await.result(getTicketInfo("1234"), 10.seconds)
 
       ticketInfo.event.isEmpty must be(false)
-      ticketInfo.event.foreach( event=> event.name must be("Quasimoto"))
+      ticketInfo.event.foreach(event => event.name must be("Quasimoto"))
       ticketInfo.travelAdvice.isEmpty must be(false)
-      ticketInfo.suggestions.map(_.name) must be (Seq("Madlib", "OhNo", "Flying Lotus"))
+      ticketInfo.suggestions.map(_.name) must be(Seq("Madlib", "OhNo", "Flying Lotus"))
     }
     "return an incomplete ticket info when getEvent fails" in {
-      val ticketInfo = Await.result(getTicketInfo("4321", Location(1d,2d)), 10.seconds)
+      val ticketInfo = Await.result(getTicketInfo("4321"), 10.seconds)
 
       ticketInfo.event.isEmpty must be(true)
       ticketInfo.travelAdvice.isEmpty must be(true)
-      ticketInfo.suggestions.isEmpty must be (true)
+      ticketInfo.suggestions.isEmpty must be(true)
     }
   }
 }
@@ -33,10 +33,10 @@ trait MockWebServiceCalls extends WebServiceCalls {
   import com.github.nscala_time.time.Imports._
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def getEvent(ticketNr: String, location: Location): Future[TicketInfo] = {
+  def getEvent(ticketNr: String): Future[TicketInfo] = {
       Future {
         if(ticketNr == "1234") {
-          TicketInfo(ticketNr, location, event = Some(Event("Quasimoto", Location(4.324218908d,53.12311144d), new DateTime(2013,10,1,22,30))))
+          TicketInfo(ticketNr, event = Some(Event("Quasimoto", Location(4.324218908d,53.12311144d), new DateTime(2013,10,1,22,30))))
         } else throw new Exception("crap")
       }
   }
@@ -49,15 +49,23 @@ trait MockWebServiceCalls extends WebServiceCalls {
     Future { Some(Weather(30, false)) }
   }
 
-  def callTrafficService(origin: Location, destination: Location, time: DateTime): Future[Option[RouteByCar]] = {
-    Future {
-      Some(RouteByCar("route1", time - (35.minutes), origin, destination, 30.minutes, 5.minutes))
+  def callTrafficService(origin: Option[Location], destination: Location, time: DateTime): Future[Option[RouteByCar]] = {
+    if(origin.isEmpty) {
+      Future.successful(None)
+    } else {
+      Future {
+        Some(RouteByCar("route1", time - 35.minutes, origin.get, destination, 30.minutes, 5.minutes))
+      }
     }
   }
 
-  def callPublicTransportService(origin: Location, destination: Location, time: DateTime): Future[Option[PublicTransportAdvice]] = {
-    Future {
-      Some(PublicTransportAdvice("public transport route 1", time - (20.minutes), origin, destination, 20.minutes))
+  def callPublicTransportService(origin: Option[Location], destination: Location, time: DateTime): Future[Option[PublicTransportAdvice]] = {
+    if(origin.isEmpty) {
+      Future.successful(None)
+    } else {
+      Future {
+        Some(PublicTransportAdvice("public transport route 1", time - 20.minutes, origin.get, destination, 20.minutes))
+      }
     }
   }
 
@@ -69,7 +77,7 @@ trait MockWebServiceCalls extends WebServiceCalls {
 
   def callArtistCalendarService(artist: Artist, nearLocation: Location): Future[Event] = {
     Future {
-      Event(artist.name,Location(1d,1d), DateTime.now)
+      Event(artist.name, Location(1d, 1d), DateTime.now)
     }
   }
 }

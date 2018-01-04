@@ -4,8 +4,8 @@ import org.joda.time.{Duration, DateTime}
 
 //Key: optional values should come after mandatory values
 case class TicketInfo(ticketNr: String,
-                      userLocation: Location,
                       event: Option[Event] = None,
+                      userLocation: Option[Location] = None,
                       travelAdvice: Option[TravelAdvice] = None,
                       weather: Option[Weather] = None,
                       suggestions: Seq[Event] = Seq())
