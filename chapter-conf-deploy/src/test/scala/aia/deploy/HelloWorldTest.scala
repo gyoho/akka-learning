@@ -5,7 +5,8 @@ import org.scalatest.MustMatchers
 import akka.testkit.{TestActorRef, ImplicitSender, TestKit}
 import akka.actor.ActorSystem
 
-class HelloWorldTest extends TestKit(ActorSystem("HelloWorldTest"))
+class HelloWorldTest
+    extends TestKit(ActorSystem("HelloWorldTest"))
     with ImplicitSender
     with WordSpecLike
     with MustMatchers
@@ -16,6 +17,7 @@ class HelloWorldTest extends TestKit(ActorSystem("HelloWorldTest"))
   override def afterAll(): Unit = {
     system.terminate()
   }
+
   "HelloWorld" must {
     "reply when sending a string" in {
       actor ! "everybody"
