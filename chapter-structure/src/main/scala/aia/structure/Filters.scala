@@ -1,7 +1,6 @@
 package aia.structure
 
-import akka.actor.{ Actor, ActorRef }
-
+import akka.actor.{Actor, ActorRef}
 
 case class Photo(license: String, speed: Int)
 

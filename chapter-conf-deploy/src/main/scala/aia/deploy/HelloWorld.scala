@@ -25,7 +25,7 @@ class HelloWorldCaller(timer: FiniteDuration, actor: ActorRef)
     context.system.scheduler.schedule(timer,
                                       timer,
                                       self,
-                                      new TimerTick("everybody"))
+                                      TimerTick("everybody"))
   }
 
   def receive: Receive = {
