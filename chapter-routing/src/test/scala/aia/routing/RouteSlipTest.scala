@@ -5,8 +5,9 @@ import org.scalatest._
 import akka.testkit._
 
 class RouteSlipTest
-  extends TestKit(ActorSystem("RouteSlipTest"))
-  with WordSpecLike with BeforeAndAfterAll {
+    extends TestKit(ActorSystem("RouteSlipTest"))
+    with WordSpecLike
+    with BeforeAndAfterAll {
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -16,37 +17,27 @@ class RouteSlipTest
     "route messages correctly" in {
 
       val probe = TestProbe()
-      val router = system.actorOf(
-        Props(new SlipRouter(probe.ref)), "SlipRouter")
+      val router = system.actorOf(Props(new SlipRouter(probe.ref)), "SlipRouter")
 
-      val minimalOrder = new Order(Seq())
+      val minimalOrder = Order(Seq())
       router ! minimalOrder
-      val defaultCar = new Car(
-        color = "black",
-        hasNavigation = false,
-        hasParkingSensors = false)
+      val defaultCar = Car(color = "black")
       probe.expectMsg(defaultCar)
 
+      val fullOrder = Order(
+        Seq(CarOptions.CAR_COLOR_GRAY,
+            CarOptions.NAVIGATION,
+            CarOptions.PARKING_SENSORS
+        )
+      )
 
-
-      val fullOrder = new Order(Seq(
-        CarOptions.CAR_COLOR_GRAY,
-        CarOptions.NAVIGATION,
-        CarOptions.PARKING_SENSORS))
       router ! fullOrder
-      val carWithAllOptions = new Car(
-        color = "gray",
-        hasNavigation = true,
-        hasParkingSensors = true)
+      val carWithAllOptions = Car(color = "gray", hasNavigation = true, hasParkingSensors = true)
       probe.expectMsg(carWithAllOptions)
 
-
-      val msg = new Order(Seq(CarOptions.PARKING_SENSORS))
+      val msg = Order(Seq(CarOptions.PARKING_SENSORS))
       router ! msg
-      val expectedCar = new Car(
-        color = "black",
-        hasNavigation = false,
-        hasParkingSensors = true)
+      val expectedCar = Car(color = "black", hasParkingSensors = true)
       probe.expectMsg(expectedCar)
 
     }

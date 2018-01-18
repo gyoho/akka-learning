@@ -1,47 +1,38 @@
 package aia.routing
 
-import akka.actor.{ Props, ActorRef, Actor }
+import akka.actor.{Props, ActorRef, Actor}
 import scala.collection.mutable.ListBuffer
-
 
 object CarOptions extends Enumeration {
   val CAR_COLOR_GRAY, NAVIGATION, PARKING_SENSORS = Value
 }
 
 case class Order(options: Seq[CarOptions.Value])
+
 case class Car(color: String = "",
                hasNavigation: Boolean = false,
                hasParkingSensors: Boolean = false)
 
-
-
-case class RouteSlipMessage(routeSlip: Seq[ActorRef],
-                            message: AnyRef)
+case class RouteSlipMessage(routeSlip: Seq[ActorRef], message: AnyRef)
 
 trait RouteSlip {
 
-  def sendMessageToNextTask(routeSlip: Seq[ActorRef],
-                            message: AnyRef) {
+  def sendMessageToNextTask(routeSlip: Seq[ActorRef], message: AnyRef) {
     val nextTask = routeSlip.head
     val newSlip = routeSlip.tail
     if (newSlip.isEmpty) {
       nextTask ! message
     } else {
 
-      nextTask ! RouteSlipMessage(
-        routeSlip = newSlip,
-        message = message)
+      nextTask ! RouteSlipMessage(routeSlip = newSlip, message = message)
     }
   }
 }
 
-
-
 class PaintCar(color: String) extends Actor with RouteSlip {
   def receive: Receive = {
     case RouteSlipMessage(routeSlip, car: Car) => {
-      sendMessageToNextTask(routeSlip,
-        car.copy(color = color))
+      sendMessageToNextTask(routeSlip, car.copy(color = color))
     }
   }
 }
@@ -49,8 +40,7 @@ class PaintCar(color: String) extends Actor with RouteSlip {
 class AddNavigation() extends Actor with RouteSlip {
   def receive: Receive = {
     case RouteSlipMessage(routeSlip, car: Car) => {
-      sendMessageToNextTask(routeSlip,
-        car.copy(hasNavigation = true))
+      sendMessageToNextTask(routeSlip, car.copy(hasNavigation = true))
     }
   }
 }
@@ -58,40 +48,34 @@ class AddNavigation() extends Actor with RouteSlip {
 class AddParkingSensors() extends Actor with RouteSlip {
   def receive: Receive = {
     case RouteSlipMessage(routeSlip, car: Car) => {
-      sendMessageToNextTask(routeSlip,
-        car.copy(hasParkingSensors = true))
+      sendMessageToNextTask(routeSlip, car.copy(hasParkingSensors = true))
     }
   }
 }
 
-
-
 class SlipRouter(endStep: ActorRef) extends Actor with RouteSlip {
-  val paintBlack = context.actorOf(
-    Props(new PaintCar("black")), "paintBlack")
-  val paintGray = context.actorOf(
-    Props(new PaintCar("gray")), "paintGray")
-  val addNavigation = context.actorOf(
-    Props[AddNavigation], "navigation")
-  val addParkingSensor = context.actorOf(
-    Props[AddParkingSensors], "parkingSensors")
+  val paintBlack = context.actorOf(Props(new PaintCar("black")), "paintBlack")
+  val paintGray = context.actorOf(Props(new PaintCar("gray")), "paintGray")
+  val addNavigation = context.actorOf(Props[AddNavigation], "navigation")
+  val addParkingSensor = context.actorOf(Props[AddParkingSensors], "parkingSensors")
 
   def receive: Receive = {
     case order: Order => {
       val routeSlip = createRouteSlip(order.options)
 
-      sendMessageToNextTask(routeSlip, new Car)
+      sendMessageToNextTask(routeSlip, new Car)  // Sends message and routeSlip to first task
     }
   }
 
-  private def createRouteSlip(options: Seq[CarOptions.Value]):
-      Seq[ActorRef] = {
+  private def createRouteSlip(options: Seq[CarOptions.Value]): Seq[ActorRef] = {
 
     val routeSlip = new ListBuffer[ActorRef]
     //car needs a color
     if (!options.contains(CarOptions.CAR_COLOR_GRAY)) {
       routeSlip += paintBlack
     }
+
+    // Adds a task ActorRef to the routeSlip for every option that needs to be processed
     options.foreach {
       case CarOptions.CAR_COLOR_GRAY  => routeSlip += paintGray
       case CarOptions.NAVIGATION      => routeSlip += addNavigation
@@ -102,4 +86,3 @@ class SlipRouter(endStep: ActorRef) extends Actor with RouteSlip {
     routeSlip
   }
 }
-
