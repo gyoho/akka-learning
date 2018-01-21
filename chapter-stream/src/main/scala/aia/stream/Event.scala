@@ -1,14 +1,6 @@
 package aia.stream
 
-import java.io.File
 import java.time.ZonedDateTime
-import scala.concurrent.Future
-import akka.NotUsed
-import akka.util.ByteString
-import akka.stream.IOResult
-import akka.stream.scaladsl.{ Source, FileIO, Framing }
-
-import scala.concurrent.duration.FiniteDuration
 
 
 case class Event(
