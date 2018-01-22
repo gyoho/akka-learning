@@ -1,4 +1,4 @@
-package aia.stream
+package aia.stream.utils
 
 import java.nio.file.{Path, Paths}
 

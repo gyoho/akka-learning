@@ -1,14 +1,16 @@
 package aia.stream
 
 import java.nio.file.Path
-
 import java.time.ZonedDateTime
+
+import aia.stream.serialization.EventMarshalling
+
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import akka.NotUsed
 import akka.util.ByteString
 import akka.stream.IOResult
-import akka.stream.scaladsl.{ FileIO, Framing, RunnableGraph, Source, Flow, SubFlow }
+import akka.stream.scaladsl.{FileIO, Flow, Framing, RunnableGraph, Source, SubFlow}
 import spray.json._
 
 /**

@@ -1,18 +1,19 @@
 package aia.stream
 
-import java.nio.file.{ Path, Paths }
+import java.nio.file.{Path, Paths}
 import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption._
 
-import scala.concurrent.Future
+import aia.stream.serialization.EventMarshalling
+import aia.stream.utils.FileArg
 
+import scala.concurrent.Future
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.{ ActorMaterializer, IOResult }
+import akka.stream.{ActorMaterializer, IOResult}
 import akka.util.ByteString
-
 import spray.json._
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 
 object ResumingEventFilter extends App with EventMarshalling {
   val config = ConfigFactory.load() 

@@ -2,6 +2,8 @@ package aia.stream
 
 import java.nio.file.StandardOpenOption._
 
+import aia.stream.serialization.EventMarshalling
+import aia.stream.utils.FileArg
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, IOResult}
@@ -35,17 +37,6 @@ object EventFilter extends App with EventMarshalling {
   val source: Source[ByteString, Future[IOResult]] = FileIO.fromPath(inputFile)
 
   val sink: Sink[ByteString, Future[IOResult]] = FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
-
-  // not used, just to show alternatively defining the entire flow
-
-  val flow: Flow[ByteString, ByteString, NotUsed] =
-    Framing
-      .delimiter(ByteString("\n"), maxLine)
-      .map(_.decodeString("UTF8"))
-      .map(LogStreamProcessor.parseLineEx)
-      .collect { case Some(e) => e }
-      .filter(_.state == filterState)
-      .map(event => ByteString(event.toJson.compactPrint))
 
   val frame: Flow[ByteString, String, NotUsed] =
     Framing

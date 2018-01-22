@@ -1,6 +1,6 @@
-package aia.stream
+package aia.stream.serialization
 
-import scala.util.Try
+import aia.stream.protocol.Metric
 import spray.json._
 
 trait MetricMarshalling extends EventMarshalling with DefaultJsonProtocol {

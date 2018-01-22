@@ -2,6 +2,7 @@ package aia.stream
 
 import java.nio.file.StandardOpenOption._
 
+import aia.stream.utils.FileArg
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{FileIO, RunnableGraph, Sink, Source}
 import akka.stream.{ActorMaterializer, IOResult}

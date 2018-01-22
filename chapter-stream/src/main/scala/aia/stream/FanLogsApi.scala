@@ -1,23 +1,21 @@
 package aia.stream
 
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{Files, Path, Paths}
 import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption._
-
 import java.time.ZonedDateTime
+
+import aia.stream.serialization.{EventMarshalling, LogEntityMarshaller}
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.util.{ Success, Failure }
-
-import akka.{ Done, NotUsed }
+import scala.util.{Failure, Success}
+import akka.{Done, NotUsed}
 import akka.actor._
 import akka.util.ByteString
-
-import akka.stream.{ ActorAttributes, ActorMaterializer, IOResult }
-import akka.stream.scaladsl.{ FileIO, BidiFlow, Flow, Framing, Keep, Sink, Source }
-
+import akka.stream.{ActorAttributes, ActorMaterializer, IOResult}
+import akka.stream.scaladsl.{BidiFlow, FileIO, Flow, Framing, Keep, Sink, Source}
 import akka.http.scaladsl.common.EntityStreamingSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.Marshal

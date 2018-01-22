@@ -1,8 +1,6 @@
-package aia.stream
+package aia.stream.serialization
 
-import scala.concurrent.duration.FiniteDuration
-
-import scala.util.Try
+import aia.stream.protocol.Summary
 import spray.json._
 
 trait NotificationMarshalling extends EventMarshalling with DefaultJsonProtocol {

@@ -1,21 +1,21 @@
 package aia.stream
 
-import java.nio.file.{ Path, Paths }
+import java.nio.file.{Path, Paths}
 import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption._
 
+import aia.stream.serialization.EventMarshalling
+import aia.stream.utils.FileArg
 
 import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.{ ActorMaterializer, IOResult }
+import akka.stream.{ActorMaterializer, IOResult}
 import akka.stream.scaladsl._
 import akka.stream.scaladsl.JsonFraming
 import akka.util.ByteString
-
 import spray.json._
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 
 object BidiEventFilter extends App with EventMarshalling {
   val config = ConfigFactory.load() 

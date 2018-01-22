@@ -1,9 +1,9 @@
-package aia.stream
+package aia.stream.serialization
 
 import java.time.ZonedDateTime
-import java.time.format.{ DateTimeFormatter, DateTimeParseException }
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
-import scala.util.Try
+import aia.stream.{Critical, Error, Event, LogReceipt, Ok, ParseError, State, Warning}
 import spray.json._
 
 trait EventMarshalling extends DefaultJsonProtocol {

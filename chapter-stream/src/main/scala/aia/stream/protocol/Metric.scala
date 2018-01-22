@@ -1,7 +1,6 @@
-package aia.stream
+package aia.stream.protocol
 
 import java.time.ZonedDateTime
-import scala.concurrent.duration.FiniteDuration
 
 case class Metric(
   service: String, 

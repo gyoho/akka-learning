@@ -1,22 +1,21 @@
 package aia.stream
 
-import scala.concurrent.{ ExecutionContext, Future }
+import aia.stream.serialization.EventMarshalling
+
+import scala.concurrent.{ExecutionContext, Future}
 import akka.NotUsed
 import akka.stream.scaladsl.Framing
 import akka.stream.scaladsl.JsonFraming
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-
 import akka.http.scaladsl.model.HttpCharsets._
 import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
-
 import akka.util.ByteString
 import spray.json._
-
 import akka.http.scaladsl.unmarshalling.Unmarshaller
 import akka.http.scaladsl.unmarshalling.Unmarshaller._
 
