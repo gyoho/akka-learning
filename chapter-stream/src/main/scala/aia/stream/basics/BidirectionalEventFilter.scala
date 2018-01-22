@@ -1,23 +1,21 @@
-package aia.stream
+package aia.stream.basics
 
-import java.nio.file.{Path, Paths}
-import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption._
 
 import aia.stream.serialization.EventMarshalling
 import aia.stream.utils.FileArg
-
-import scala.concurrent.Future
+import aia.stream.{Event, LogStreamProcessor, State}
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.stream.scaladsl.{JsonFraming, _}
 import akka.stream.{ActorMaterializer, IOResult}
-import akka.stream.scaladsl._
-import akka.stream.scaladsl.JsonFraming
 import akka.util.ByteString
+import com.typesafe.config.ConfigFactory
 import spray.json._
-import com.typesafe.config.{Config, ConfigFactory}
 
-object BidiEventFilter extends App with EventMarshalling {
+import scala.concurrent.Future
+
+object BidirectionalEventFilter extends App with EventMarshalling {
   val config = ConfigFactory.load() 
   val maxLine = config.getInt("log-stream-processor.max-line")
   val maxJsonObject = config.getInt("log-stream-processor.max-json-object")
@@ -56,24 +54,19 @@ object BidiEventFilter extends App with EventMarshalling {
         ByteString(LogStreamProcessor.logLine(event))
       }
     }
+
   val bidiFlow = BidiFlow.fromFlows(inFlow, outFlow)
-
     
-  val source: Source[ByteString, Future[IOResult]] = 
-    FileIO.fromPath(inputFile)
+  val source: Source[ByteString, Future[IOResult]] = FileIO.fromPath(inputFile)
 
-  val sink: Sink[ByteString, Future[IOResult]] = 
-    FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
-  
+  val sink: Sink[ByteString, Future[IOResult]] = FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
 
-  val filter: Flow[Event, Event, NotUsed] =   
-    Flow[Event].filter(_.state == filterState)
+  val filter: Flow[Event, Event, NotUsed] = Flow[Event].filter(_.state == filterState)
 
+  // separates the serialization protocol from the logic for filtering events
   val flow = bidiFlow.join(filter)
 
-
-  val runnableGraph: RunnableGraph[Future[IOResult]] = 
-    source.via(flow).toMat(sink)(Keep.right)
+  val runnableGraph: RunnableGraph[Future[IOResult]] = source.via(flow).toMat(sink)(Keep.right)
 
   implicit val system = ActorSystem() 
   implicit val ec = system.dispatcher

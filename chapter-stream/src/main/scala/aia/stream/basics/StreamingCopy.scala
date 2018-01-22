@@ -1,4 +1,4 @@
-package aia.stream
+package aia.stream.basics
 
 import java.nio.file.StandardOpenOption._
 
@@ -39,17 +39,4 @@ object StreamingCopy extends App {
     println(s"${result.status}, ${result.count} bytes read.")
     system.terminate()
   }
-
-  // These are just examples, they are not run as part of StreamingCopy
-
-  import akka.Done
-  import akka.stream.scaladsl.Keep
-
-  val graphLeft: RunnableGraph[Future[IOResult]] = source.toMat(sink)(Keep.left)
-  val graphRight: RunnableGraph[Future[IOResult]] = source.toMat(sink)(Keep.right)
-  val graphBoth: RunnableGraph[(Future[IOResult], Future[IOResult])] = source.toMat(sink)(Keep.both)
-  val graphCustom: RunnableGraph[Future[Done]] = source.toMat(sink) { (l, r) =>
-      Future.sequence(List(l, r)).map(_ => Done)
-    }
-
 }
