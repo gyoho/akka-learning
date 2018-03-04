@@ -53,11 +53,12 @@ object ErrorHandlingFilter extends App with EventMarshalling {
     case _                    => Supervision.Stop
   }
 
+  //Key: set the supervision strategy for part of graph
   val parse: Flow[String, Event, NotUsed] =
     Flow[String]
       .map(LogStreamProcessor.parseLineEx)
       .collect { case Some(e) => e }
-      .withAttributes(ActorAttributes.supervisionStrategy(decider))  // Passes the supervisor through attributes
+      .withAttributes(ActorAttributes.supervisionStrategy(decider))
 
   val filter: Flow[Event, Event, NotUsed] = Flow[Event].filter(_.state == filterState)
 
@@ -73,7 +74,7 @@ object ErrorHandlingFilter extends App with EventMarshalling {
 
   import akka.stream.ActorMaterializerSettings
 
-  // set the supervision strategy for the complete graph
+  //Key: set the supervision strategy for the complete graph
   implicit val materializer = ActorMaterializer(
     ActorMaterializerSettings(system)
       .withSupervisionStrategy(graphDecider)

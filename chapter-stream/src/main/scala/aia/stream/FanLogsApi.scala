@@ -49,7 +49,7 @@ class FanLogsApi(
       val bcast = builder.add(Broadcast[Event](5))
       val js = builder.add(jsFlow)
 
-      val ok = Flow[Event].filter(_.state == Ok) 
+      val ok = Flow[Event].filter(_.state == Ok)
       val warning = Flow[Event].filter(_.state == Warning)
       val error = Flow[Event].filter(_.state == Error)
       val critical = Flow[Event].filter(_.state == Critical)
@@ -64,11 +64,11 @@ class FanLogsApi(
     })
   }
 
-  def logFileSource(logId: String, state: State) = 
+  def logFileSource(logId: String, state: State): Source[ByteString, Future[IOResult]] =
     FileIO.fromPath(logStateFile(logId, state))
-  def logFileSink(logId: String, state: State) = 
+  def logFileSink(logId: String, state: State): Sink[ByteString, Future[IOResult]] =
     FileIO.toPath(logStateFile(logId, state), Set(CREATE, WRITE, APPEND))
-  def logStateFile(logId: String, state: State) = 
+  def logStateFile(logId: String, state: State): Path =
     logFile(s"$logId-${State.norm(state)}")  
 
 
