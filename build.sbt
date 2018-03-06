@@ -1,4 +1,4 @@
-name := "all"
+name := "akka-learning"
 
 version := "1.0"
 
