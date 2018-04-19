@@ -19,22 +19,26 @@ class RouteSlipTest
       val probe = TestProbe()
       val router = system.actorOf(Props(new SlipRouter(probe.ref)), "SlipRouter")
 
+      // minimal order
       val minimalOrder = Order(Seq())
       router ! minimalOrder
       val defaultCar = Car(color = "black")
       probe.expectMsg(defaultCar)
 
+
+      // full order
       val fullOrder = Order(
         Seq(CarOptions.CAR_COLOR_GRAY,
             CarOptions.NAVIGATION,
             CarOptions.PARKING_SENSORS
         )
       )
-
       router ! fullOrder
       val carWithAllOptions = Car(color = "gray", hasNavigation = true, hasParkingSensors = true)
       probe.expectMsg(carWithAllOptions)
 
+
+      // custom order
       val msg = Order(Seq(CarOptions.PARKING_SENSORS))
       router ! msg
       val expectedCar = Car(color = "black", hasParkingSensors = true)

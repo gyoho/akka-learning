@@ -37,7 +37,7 @@ class Greeter02(listener: Option[ActorRef]) extends Actor with ActorLogging {
     case Greeting(who) =>
       val message = "Hello " + who + "!"
       log.info(message)
-      //note: sends message to lister for testing purpose
+      //note: sends message to listener for testing purpose
       listener.foreach(_ ! message)
   }
 }

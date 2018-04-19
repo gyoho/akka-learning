@@ -34,7 +34,7 @@ trait TicketInfoService extends WebServiceCalls {
 
     val futures: List[Future[Option[Weather]]] = List(futureWeatherX, futureWeatherY)
 
-    // val fastestResponse: Future[Option[Weather]] = Future.firstCompletedOf(futures)
+    val fastestResponseFC: Future[Option[Weather]] = Future.firstCompletedOf(futures)
     val fastestResponse: Future[Option[Weather]] = Future.find(futures)(maybeWeather => maybeWeather.isDefined).map(_.flatten)
 
     fastestResponse.map { weatherResponse =>

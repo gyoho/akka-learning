@@ -6,7 +6,7 @@ import aia.stream.serialization.EventMarshalling
 import aia.stream.utils.FileArg
 import aia.stream.{Event, LogStreamProcessor, State}
 import akka.NotUsed
-import akka.actor.ActorSystem†
+import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, IOResult}
 import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
