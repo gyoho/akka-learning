@@ -56,7 +56,11 @@ trait TicketInfoService extends WebServiceCalls {
 
     // more readable
     for {
-      (routeByCar, publicTransportAdvice) <- futureRouteByCar.zip(futurePublicTransport)
+//      (routeByCar, publicTransportAdvice) <- futureRouteByCar.zip(futurePublicTransport)
+      routeByCar <- futureRouteByCar
+      if routeByCar.isDefined
+      publicTransportAdvice <- futurePublicTransport
+      if publicTransportAdvice.isDefined
       travelAdvice = TravelAdvice(routeByCar, publicTransportAdvice)
     } yield info.copy(travelAdvice = Some(travelAdvice))
   }
@@ -89,8 +93,8 @@ trait TicketInfoService extends WebServiceCalls {
     val eventInfo = getEvent(ticketNr).recover(withPrevious(emptyTicketInfo))
 
     eventInfo.flatMap { info =>
-      val infoWithWeather = getWeather(info)
-      val infoWithTravelAdvice = info.event.map { event =>
+      val infoWithWeather: Future[TicketInfo] = getWeather(info)
+      val infoWithTravelAdvice: Future[TicketInfo] = info.event.map { event =>
         getTravelAdvice(info, event)
       }.getOrElse(eventInfo)
 
@@ -99,9 +103,9 @@ trait TicketInfoService extends WebServiceCalls {
         getSuggestions(event)
       }.getOrElse(Future.successful(Seq()))
 
-      val ticketInfos = Seq(infoWithTravelAdvice, infoWithWeather)
+      val ticketInfos: Seq[Future[TicketInfo]] = Seq(infoWithTravelAdvice, infoWithWeather)
 
-      val infoWithTravelAndWeather: Future[TicketInfo] = Future.fold(ticketInfos)(info) { (acc, elem) =>
+      val infoWithTravelAndWeather: Future[TicketInfo] = Future.fold(ticketInfos)(info) { (acc: TicketInfo, elem: TicketInfo) =>
         val (travelAdvice, weather) = (elem.travelAdvice, elem.weather)
 
         //Note: None orElse None --> None,  Some(A) orElse Some(B) --> Some(A)
