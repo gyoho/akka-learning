@@ -6,8 +6,7 @@ import akka.actor.Identify
 
 import scala.concurrent.duration._
 
-class RemoteLookupProxy(path: String)
-  extends Actor with ActorLogging {
+class RemoteLookupProxy(path: String) extends Actor with ActorLogging {
 
   context.setReceiveTimeout(3 seconds)
   sendIdentifyRequest()

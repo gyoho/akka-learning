@@ -7,16 +7,14 @@ import akka.actor._
 import akka.dispatch.Dispatchers
 import akka.routing._
 
-
 case class PerformanceRoutingMessage(photo: String,
                                      license: Option[String],
                                      processedBy: Option[String])
 
-
 case class SetService(id: String, serviceTime: FiniteDuration)
 
 class GetLicense(pipe: ActorRef, initialServiceTime: FiniteDuration = 0 millis)
-  extends Actor {
+    extends Actor {
   var id = self.path.name
   var serviceTime = initialServiceTime
 
@@ -31,11 +29,10 @@ class GetLicense(pipe: ActorRef, initialServiceTime: FiniteDuration = 0 millis)
       pipe ! msg.copy(
         license = ImageProcessing.getLicense(msg.photo),
         processedBy = Some(id)
-        )
+      )
     }
   }
 }
-
 
 class RedirectActor(pipe: ActorRef) extends Actor {
   println("RedirectActor instance created")
@@ -46,10 +43,10 @@ class RedirectActor(pipe: ActorRef) extends Actor {
   }
 }
 
-
-
-class SpeedRouterLogic(minSpeed: Int, normalFlowPath: String, cleanUpPath: String)
-  extends RoutingLogic {
+class SpeedRouterLogic(minSpeed: Int,
+                       normalFlowPath: String,
+                       cleanUpPath: String)
+    extends RoutingLogic {
 
   def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee = {
 
@@ -62,21 +59,26 @@ class SpeedRouterLogic(minSpeed: Int, normalFlowPath: String, cleanUpPath: Strin
     }
   }
 
-  def findRoutee(routees: immutable.IndexedSeq[Routee], path: String): Routee = {
+  def findRoutee(routees: immutable.IndexedSeq[Routee],
+                 path: String): Routee = {
     val routeeList = routees.flatMap {
       case routee: ActorRefRoutee    => routees
       case SeveralRoutees(routeeSeq) => routeeSeq
     }
-    val search = routeeList.find { case routee: ActorRefRoutee => routee.ref.path.toString().endsWith(path) }
+    val search = routeeList.find {
+      case routee: ActorRefRoutee => routee.ref.path.toString().endsWith(path)
+    }
     search.getOrElse(NoRoutee)
   }
 }
 
-case class SpeedRouterPool(minSpeed: Int, normalFlow: Props, cleanUp: Props) extends Pool {
+case class SpeedRouterPool(minSpeed: Int, normalFlow: Props, cleanUp: Props)
+    extends Pool {
 
   def nrOfInstances(sys: ActorSystem): Int = 1
   def resizer: Option[Resizer] = None
-  def supervisorStrategy: SupervisorStrategy = OneForOneStrategy()(SupervisorStrategy.defaultDecider)
+  def supervisorStrategy: SupervisorStrategy =
+    OneForOneStrategy()(SupervisorStrategy.defaultDecider)
 
   override def createRouter(system: ActorSystem): Router = {
     new Router(new SpeedRouterLogic(minSpeed, "normalFlow", "cleanup"))
@@ -88,17 +90,18 @@ case class SpeedRouterPool(minSpeed: Int, normalFlow: Props, cleanUp: Props) ext
     val normal = context.actorOf(normalFlow, "normalFlow")
     val clean = context.actorOf(cleanUp, "cleanup")
 
-    SeveralRoutees(immutable.IndexedSeq[Routee](ActorRefRoutee(normal), ActorRefRoutee(clean)))
+    SeveralRoutees(
+      immutable
+        .IndexedSeq[Routee](ActorRefRoutee(normal), ActorRefRoutee(clean)))
   }
 }
-
-
 
 case class RouteStateOn()
 case class RouteStateOff()
 
 class SwitchRouter(normalFlow: ActorRef, cleanUp: ActorRef)
-  extends Actor with ActorLogging {
+    extends Actor
+    with ActorLogging {
 
   def on: Receive = {
     case RouteStateOn =>
@@ -121,11 +124,9 @@ class SwitchRouter(normalFlow: ActorRef, cleanUp: ActorRef)
   }
 }
 
-
-
-
 class SwitchRouter2(normalFlow: ActorRef, cleanUp: ActorRef)
-  extends Actor with ActorLogging {
+    extends Actor
+    with ActorLogging {
 
   def on: Receive = {
     case RouteStateOn =>
@@ -147,4 +148,3 @@ class SwitchRouter2(normalFlow: ActorRef, cleanUp: ActorRef)
     case msg: AnyRef => off(msg)
   }
 }
-

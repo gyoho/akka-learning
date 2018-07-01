@@ -18,20 +18,22 @@ trait Startup extends RequestTimeout {
     startHttpServer(api, host, port)
   }
 
-  def startHttpServer(api: Route, host: String, port: Int)
-      (implicit system: ActorSystem) = {
-    implicit val ec = system.dispatcher  //bindAndHandle requires an implicit ExecutionContext
+  def startHttpServer(api: Route, host: String, port: Int)(
+      implicit system: ActorSystem) = {
+    implicit val ec = system.dispatcher //bindAndHandle requires an implicit ExecutionContext
     implicit val materializer = ActorMaterializer()
     val bindingFuture: Future[ServerBinding] =
-    Http().bindAndHandle(api, host, port) //Starts the HTTP server
-   
+      Http().bindAndHandle(api, host, port) //Starts the HTTP server
+
     val log = Logging(system.eventStream, "go-ticks")
-    bindingFuture.map { serverBinding =>
-      log.info(s"RestApi bound to ${serverBinding.localAddress} ")
-    }.onFailure { 
-      case ex: Exception =>
-        log.error(ex, "Failed to bind to {}:{}!", host, port)
-        system.terminate()
-    }
+    bindingFuture
+      .map { serverBinding =>
+        log.info(s"RestApi bound to ${serverBinding.localAddress} ")
+      }
+      .onFailure {
+        case ex: Exception =>
+          log.error(ex, "Failed to bind to {}:{}!", host, port)
+          system.terminate()
+      }
   }
 }

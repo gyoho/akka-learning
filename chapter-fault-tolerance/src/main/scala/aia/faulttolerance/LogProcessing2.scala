@@ -99,7 +99,8 @@ package dbstrategy2 {
   }
 
   object LogProcessor {
-    def props(databaseUrls: Vector[String]) = Props(new LogProcessor(databaseUrls))
+    def props(databaseUrls: Vector[String]) =
+      Props(new LogProcessor(databaseUrls))
     def name = s"log_processor_${UUID.randomUUID.toString}"
     // represents a new log file
     case class LogFile(file: File)
@@ -149,7 +150,8 @@ package dbstrategy2 {
 
   object DbWriter {
     def props(databaseUrl: String) = Props(new DbWriter(databaseUrl))
-    def name(databaseUrl: String) = s"""db-writer-${databaseUrl.split("/").last}"""
+    def name(databaseUrl: String) =
+      s"""db-writer-${databaseUrl.split("/").last}"""
 
     // A line in the log file parsed by the LogProcessor Actor
     case class Line(time: Long, message: String, messageType: String)

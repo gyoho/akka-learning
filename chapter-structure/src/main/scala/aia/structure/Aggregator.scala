@@ -30,24 +30,26 @@ class Aggregator(timeout: FiniteDuration, pipe: ActorRef) extends Actor {
             rcvMsg.speed.orElse(alreadyRcvMsg.speed)
           )
           pipe ! newCombinedMsg
-          messages -= alreadyRcvMsg  // cleanup message
+          messages -= alreadyRcvMsg // cleanup message
 
-        case None =>  // first message, store it for processing later
+        case None => // first message, store it for processing later
           messages += rcvMsg
           //Key: schedules timeout by sending the `TimeoutMessages` to self after `timeout` interval
-          context.system.scheduler.scheduleOnce(timeout, self, TimeoutMessage(rcvMsg))
+          context.system.scheduler
+            .scheduleOnce(timeout, self, TimeoutMessage(rcvMsg))
       }
 
     case TimeoutMessage(rcvMsg) =>
       messages.find(_.id == rcvMsg.id) match {
         case Some(alreadyRcvMsg) =>
-          pipe ! alreadyRcvMsg  // send incomplete message anyway
-          messages -= alreadyRcvMsg  // cleanup message
+          pipe ! alreadyRcvMsg // send incomplete message anyway
+          messages -= alreadyRcvMsg // cleanup message
 
         case None => //message is already processed
       }
 
-    case ex: Exception => throw ex  //Key: trigger a restart by throwing exception
+    case ex: Exception =>
+      throw ex //Key: trigger a restart by throwing exception
   }
 }
 

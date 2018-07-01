@@ -17,7 +17,8 @@ case class Event(name: String, location: Location, time: DateTime)
 case class Artist(name: String, calendarUri: String)
 
 case class TravelAdvice(routeByCar: Option[RouteByCar] = None,
-                        publicTransportAdvice: Option[PublicTransportAdvice] = None)
+                        publicTransportAdvice: Option[PublicTransportAdvice] =
+                          None)
 
 case class RouteByCar(route: String,
                       timeToLeave: DateTime,

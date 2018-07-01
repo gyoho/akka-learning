@@ -25,7 +25,8 @@ object StreamingCopy extends App {
 
   val source: Source[ByteString, Future[IOResult]] = FileIO.fromPath(inputFile)
 
-  val sink: Sink[ByteString, Future[IOResult]] = FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
+  val sink: Sink[ByteString, Future[IOResult]] =
+    FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
 
   // Connecting a source and a sink creates a RunnableGraph
   val runnableGraph: RunnableGraph[Future[IOResult]] = source.to(sink)
@@ -35,7 +36,7 @@ object StreamingCopy extends App {
   // The materializer eventually creates actors that execute the graph
   implicit val materializer = ActorMaterializer()
 
-  runnableGraph.run().foreach { result =>  // bytes being copied
+  runnableGraph.run().foreach { result => // bytes being copied
     println(s"${result.status}, ${result.count} bytes read.")
     system.terminate()
   }

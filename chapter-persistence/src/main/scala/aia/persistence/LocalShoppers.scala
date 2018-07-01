@@ -7,8 +7,7 @@ object LocalShoppers {
   def name = "local-shoppers"
 }
 
-class LocalShoppers extends Actor
-    with ShopperLookup {
+class LocalShoppers extends Actor with ShopperLookup {
   def receive: Receive = forwardToShopper
 }
 
@@ -17,7 +16,8 @@ trait ShopperLookup {
 
   def forwardToShopper: Actor.Receive = {
     case cmd: Shopper.Command =>
-      context.child(Shopper.name(cmd.shopperId))
+      context
+        .child(Shopper.name(cmd.shopperId))
         .fold(createAndForward(cmd, cmd.shopperId))(forwardCommand(cmd))
   }
 
@@ -29,6 +29,5 @@ trait ShopperLookup {
   }
 
   def createShopper(shopperId: Long) =
-    context.actorOf(Shopper.props(shopperId),
-      Shopper.name(shopperId))
+    context.actorOf(Shopper.props(shopperId), Shopper.name(shopperId))
 }

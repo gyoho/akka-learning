@@ -1,17 +1,14 @@
 package aia.integration
 
-import akka.camel.{ Producer, CamelMessage, Consumer }
+import akka.camel.{Producer, CamelMessage, Consumer}
 import akka.actor.ActorRef
-import net.liftweb.json.{ Serialization, DefaultFormats }
+import net.liftweb.json.{Serialization, DefaultFormats}
 import xml.XML
 import scala.concurrent.duration._
 
-
 case class Order(customerId: String, productId: String, number: Int)
 
-
-class OrderConsumerJson(uri: String, next: ActorRef)
-  extends Consumer {
+class OrderConsumerJson(uri: String, next: ActorRef) extends Consumer {
 
   def endpointUri = uri
 
@@ -26,9 +23,7 @@ class OrderConsumerJson(uri: String, next: ActorRef)
   }
 }
 
-
-class OrderConsumerXml(uri: String, next: ActorRef)
-  extends Consumer {
+class OrderConsumerXml(uri: String, next: ActorRef) extends Consumer {
 
   def endpointUri = uri
 
@@ -45,10 +40,7 @@ class OrderConsumerXml(uri: String, next: ActorRef)
   }
 }
 
-
-
-class OrderConfirmConsumerXml(uri: String, next: ActorRef)
-  extends Consumer {
+class OrderConfirmConsumerXml(uri: String, next: ActorRef) extends Consumer {
 
   def endpointUri = uri
 
@@ -71,12 +63,9 @@ class OrderConfirmConsumerXml(uri: String, next: ActorRef)
   }
 }
 
-
-
 class SimpleProducer(uri: String) extends Producer {
   def endpointUri = uri
 }
-
 
 class OrderProducerXml(uri: String) extends Producer {
   def endpointUri = uri
@@ -94,8 +83,7 @@ class OrderProducerXml(uri: String) extends Producer {
       }
       case other => message
     }
-} 
-
+}
 
 class OrderConfirmProducerXml(uri: String) extends Producer {
   def endpointUri = uri
@@ -130,4 +118,3 @@ class OrderConfirmProducerXml(uri: String) extends Producer {
       case other => message
     }
 }
-

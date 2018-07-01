@@ -12,8 +12,9 @@ object RemoteBoxOfficeForwarder {
   def name = "forwarder"
 }
 
-class RemoteBoxOfficeForwarder(implicit timeout: Timeout) 
-    extends Actor with ActorLogging {
+class RemoteBoxOfficeForwarder(implicit timeout: Timeout)
+    extends Actor
+    with ActorLogging {
   context.setReceiveTimeout(3 seconds)
 
   deployAndWatch()

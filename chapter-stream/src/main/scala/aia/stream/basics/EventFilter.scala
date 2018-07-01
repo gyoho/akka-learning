@@ -37,7 +37,8 @@ object EventFilter extends App with EventMarshalling {
 
   val source: Source[ByteString, Future[IOResult]] = FileIO.fromPath(inputFile)
 
-  val sink: Sink[ByteString, Future[IOResult]] = FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
+  val sink: Sink[ByteString, Future[IOResult]] =
+    FileIO.toPath(outputFile, Set(CREATE, WRITE, APPEND))
 
   val frame: Flow[ByteString, String, NotUsed] =
     Framing
@@ -49,9 +50,11 @@ object EventFilter extends App with EventMarshalling {
       .map(LogStreamProcessor.parseLineEx)
       .collect { case Some(e) => e }
 
-  val filter: Flow[Event, Event, NotUsed] = Flow[Event].filter(_.state == filterState)
+  val filter: Flow[Event, Event, NotUsed] =
+    Flow[Event].filter(_.state == filterState)
 
-  val serialize: Flow[Event, ByteString, NotUsed] = Flow[Event].map(event => ByteString(event.toJson.compactPrint))
+  val serialize: Flow[Event, ByteString, NotUsed] =
+    Flow[Event].map(event => ByteString(event.toJson.compactPrint))
 
   implicit val system = ActorSystem()
   implicit val ec = system.dispatcher
@@ -63,7 +66,8 @@ object EventFilter extends App with EventMarshalling {
       .via(filter)
       .via(serialize)
 
-  val runnableGraph: RunnableGraph[Future[IOResult]] = source.via(composedFlow).toMat(sink)(Keep.right)
+  val runnableGraph: RunnableGraph[Future[IOResult]] =
+    source.via(composedFlow).toMat(sink)(Keep.right)
 
   runnableGraph.run().foreach { result =>
     println(s"Wrote ${result.count} bytes to '$outputFile'.")

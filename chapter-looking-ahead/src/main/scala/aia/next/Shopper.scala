@@ -1,6 +1,5 @@
 package aia.next
 
-
 import akka.actor._
 
 object Shopper {
@@ -9,4 +8,3 @@ object Shopper {
     def shopperId: Long
   }
 }
-

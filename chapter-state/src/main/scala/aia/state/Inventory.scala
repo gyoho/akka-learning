@@ -1,6 +1,6 @@
 package aia.state
 
-import akka.actor.{ ActorRef, Actor, FSM }
+import akka.actor.{ActorRef, Actor, FSM}
 import math.min
 import scala.concurrent.duration._
 
@@ -23,19 +23,17 @@ case object WaitForPublisher extends State
 case object SoldOut extends State
 case object ProcessSoldOut extends State
 
-case class StateData(nrBooksInStore: Int,
-                     pendingRequests: Seq[BookRequest])
+case class StateData(nrBooksInStore: Int, pendingRequests: Seq[BookRequest])
 
-class Inventory(publisher: ActorRef) extends Actor
-  with FSM[State, StateData] {
+class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
 
   var reserveId = 0
   startWith(WaitForRequests, new StateData(0, Seq()))
 
   when(WaitForRequests) {
     case Event(request: BookRequest, data: StateData) => {
-      val newStateData = data.copy(
-        pendingRequests = data.pendingRequests :+ request)
+      val newStateData =
+        data.copy(pendingRequests = data.pendingRequests :+ request)
       if (newStateData.nrBooksInStore > 0) {
         goto(ProcessRequest) using newStateData
       } else {
@@ -54,8 +52,7 @@ class Inventory(publisher: ActorRef) extends Actor
   }
   when(WaitForPublisher) {
     case Event(supply: BookSupply, data: StateData) => {
-      goto(ProcessRequest) using data.copy(
-        nrBooksInStore = supply.nrBooks)
+      goto(ProcessRequest) using data.copy(nrBooksInStore = supply.nrBooks)
     }
     case Event(BookSupplySoldOut, _) => {
       goto(ProcessSoldOut)
@@ -81,12 +78,13 @@ class Inventory(publisher: ActorRef) extends Actor
   whenUnhandled {
     // common code for all states
     case Event(request: BookRequest, data: StateData) => {
-      stay using data.copy(
-        pendingRequests = data.pendingRequests :+ request)
+      stay using data.copy(pendingRequests = data.pendingRequests :+ request)
     }
     case Event(e, s) => {
       log.warning("received unhandled request {} in state {}/{}",
-        e, stateName, s)
+                  e,
+                  stateName,
+                  s)
       stay
     }
   }
@@ -120,9 +118,7 @@ class Inventory(publisher: ActorRef) extends Actor
   }
 }
 
-
-class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int)
-  extends Actor {
+class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int) extends Actor {
 
   var nrLeft = totalNrBooks
   def receive: Receive = {
@@ -138,17 +134,17 @@ class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int)
   }
 }
 
-
-class InventoryWithTimer(publisher: ActorRef) extends Actor
-  with FSM[State, StateData] {
+class InventoryWithTimer(publisher: ActorRef)
+    extends Actor
+    with FSM[State, StateData] {
 
   var reserveId = 0
   startWith(WaitForRequests, new StateData(0, Seq()))
 
   when(WaitForRequests) {
     case Event(request: BookRequest, data: StateData) => {
-      val newStateData = data.copy(
-        pendingRequests = data.pendingRequests :+ request)
+      val newStateData =
+        data.copy(pendingRequests = data.pendingRequests :+ request)
       if (newStateData.nrBooksInStore > 0) {
         goto(ProcessRequest) using newStateData
       } else {
@@ -167,8 +163,7 @@ class InventoryWithTimer(publisher: ActorRef) extends Actor
   }
   when(WaitForPublisher, stateTimeout = 5 seconds) {
     case Event(supply: BookSupply, data: StateData) => {
-      goto(ProcessRequest) using data.copy(
-        nrBooksInStore = supply.nrBooks)
+      goto(ProcessRequest) using data.copy(nrBooksInStore = supply.nrBooks)
     }
     case Event(BookSupplySoldOut, _) => {
       goto(ProcessSoldOut)
@@ -195,12 +190,13 @@ class InventoryWithTimer(publisher: ActorRef) extends Actor
   whenUnhandled {
     // common code for all states
     case Event(request: BookRequest, data: StateData) => {
-      stay using data.copy(
-        pendingRequests = data.pendingRequests :+ request)
+      stay using data.copy(pendingRequests = data.pendingRequests :+ request)
     }
     case Event(e, s) => {
       log.warning("received unhandled request {} in state {}/{}",
-        e, stateName, s)
+                  e,
+                  stateName,
+                  s)
       stay
     }
   }

@@ -55,4 +55,3 @@ class GetTime(pipe: ActorRef) extends Actor {
     }
   }
 }
-

@@ -5,17 +5,16 @@ import akka.actor.{ActorLogging, Actor}
 import akka.cluster.{MemberStatus, Cluster}
 import akka.cluster.ClusterEvent._
 
-class ClusterDomainEventListener extends Actor
-                    with ActorLogging {
+class ClusterDomainEventListener extends Actor with ActorLogging {
   Cluster(context.system).subscribe(self, classOf[ClusterDomainEvent])
 
-  def receive: Receive ={
+  def receive: Receive = {
     case MemberUp(member) =>
       log.info(s"$member UP.")
-    case MemberExited(member)=>
+    case MemberExited(member) =>
       log.info(s"$member EXITED.")
-    case MemberRemoved(member, previousState)=>
-      if(previousState == MemberStatus.Exiting) {
+    case MemberRemoved(member, previousState) =>
+      if (previousState == MemberStatus.Exiting) {
         log.info(s"Member $member Previously gracefully exited, REMOVED.")
       } else {
         log.info(s"$member Previously downed after unreachable, REMOVED.")

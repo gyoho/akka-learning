@@ -9,7 +9,6 @@ object ShardedShopper {
   def props = Props(new ShardedShopper)
   def name(shopperId: Long) = shopperId.toString
 
-
   case object StopShopping
 
   val shardName: String = "shoppers"

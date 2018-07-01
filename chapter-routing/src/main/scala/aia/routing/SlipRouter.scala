@@ -57,13 +57,14 @@ class SlipRouter(endStep: ActorRef) extends Actor with RouteSlip {
   val paintBlack = context.actorOf(Props(new PaintCar("black")), "paintBlack")
   val paintGray = context.actorOf(Props(new PaintCar("gray")), "paintGray")
   val addNavigation = context.actorOf(Props[AddNavigation], "navigation")
-  val addParkingSensor = context.actorOf(Props[AddParkingSensors], "parkingSensors")
+  val addParkingSensor =
+    context.actorOf(Props[AddParkingSensors], "parkingSensors")
 
   def receive: Receive = {
     case order: Order => {
       val routeSlip = createRouteSlip(order.options)
 
-      sendMessageToNextTask(routeSlip, new Car)  // Sends message and routeSlip to first task
+      sendMessageToNextTask(routeSlip, new Car) // Sends message and routeSlip to first task
     }
   }
 

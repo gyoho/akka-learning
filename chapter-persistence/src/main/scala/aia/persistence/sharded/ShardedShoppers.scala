@@ -5,7 +5,7 @@ import akka.actor._
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 
 object ShardedShoppers {
-  def props= Props(new ShardedShoppers)
+  def props = Props(new ShardedShoppers)
   def name = "sharded-shoppers"
 }
 

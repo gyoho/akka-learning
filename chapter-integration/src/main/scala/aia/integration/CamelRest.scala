@@ -1,22 +1,19 @@
 package aia.integration
 
-import akka.actor.{ Actor, ActorRef }
-import akka.camel.{ CamelMessage, Consumer }
+import akka.actor.{Actor, ActorRef}
+import akka.camel.{CamelMessage, Consumer}
 import xml.XML
 import org.apache.camel.Exchange
-import util.{ Failure, Success }
+import util.{Failure, Success}
 import collection.mutable
 import akka.pattern.ask
 import akka.util.Timeout
 import concurrent.duration._
 import concurrent.ExecutionContext
 
-
 case class TrackingOrder(id: Long, status: String, order: Order)
 case class OrderId(id: Long)
 case class NoSuchOrder(id: Long)
-
-
 
 class ProcessOrders extends Actor {
 
@@ -44,12 +41,9 @@ class ProcessOrders extends Actor {
   }
 }
 
-
-class OrderConsumerRest(uri: String, next: ActorRef)
-  extends Consumer {
+class OrderConsumerRest(uri: String, next: ActorRef) extends Consumer {
 
   def endpointUri = uri
-
 
   def receive: Receive = {
     case msg: CamelMessage => {
@@ -68,29 +62,26 @@ class OrderConsumerRest(uri: String, next: ActorRef)
           }
           case Success(act) => {
             sender() ! createErrorMsg(400, //Bad Request
-              "Unsupported action %s".format(act))
+                                      "Unsupported action %s".format(act))
           }
           case Failure(_) => {
             sender() ! createErrorMsg(400, //Bad Request
-              "HTTP_METHOD not supplied")
+                                      "HTTP_METHOD not supplied")
           }
         }
       } catch {
         case ex: Exception =>
           sender() ! createErrorMsg(500, //Internal Server Error
-            ex.getMessage)
+                                    ex.getMessage)
       }
     }
   }
 
   def createErrorMsg(responseCode: Int, body: String): CamelMessage = {
 
-    val headers = Map[String, Any](
-      Exchange.HTTP_RESPONSE_CODE -> responseCode)
+    val headers = Map[String, Any](Exchange.HTTP_RESPONSE_CODE -> responseCode)
     CamelMessage(body, headers)
   }
-
-
 
   def processOrder(content: String): Unit = {
     implicit val timeout: Timeout = 1 second
@@ -99,9 +90,8 @@ class OrderConsumerRest(uri: String, next: ActorRef)
     val askFuture = next ? order
     val sendResultTo = sender
 
-    val headers = Map[String, Any](
-      Exchange.CONTENT_TYPE -> "text/xml",
-      Exchange.HTTP_RESPONSE_CODE -> 200)
+    val headers = Map[String, Any](Exchange.CONTENT_TYPE -> "text/xml",
+                                   Exchange.HTTP_RESPONSE_CODE -> 200)
     askFuture.onComplete {
       case Success(result: TrackingOrder) => {
         val response = <confirm>
@@ -126,7 +116,6 @@ class OrderConsumerRest(uri: String, next: ActorRef)
     }
   }
 
-
   def processStatus(id: String): Unit = {
     implicit val timeout: Timeout = 1 second
     implicit val ExecutionContext = context.system.dispatcher
@@ -135,9 +124,8 @@ class OrderConsumerRest(uri: String, next: ActorRef)
     val askFuture = next ? order
     val sendResultTo = sender
 
-    val headers = Map[String, Any](
-      Exchange.CONTENT_TYPE -> "text/xml",
-      Exchange.HTTP_RESPONSE_CODE -> 200)
+    val headers = Map[String, Any](Exchange.CONTENT_TYPE -> "text/xml",
+                                   Exchange.HTTP_RESPONSE_CODE -> 200)
     askFuture.onComplete {
       case Success(result: TrackingOrder) => {
         val response = <statusResponse>
@@ -168,7 +156,6 @@ class OrderConsumerRest(uri: String, next: ActorRef)
         sendResultTo ! CamelMessage(response.toString(), headers)
     }
   }
-
 
   def createOrder(content: String): Order = {
     val xml = XML.loadString(content)

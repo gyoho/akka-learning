@@ -21,9 +21,10 @@ object Wallet {
   case class Paid(list: List[Item], shopperId: Long) extends Event
 }
 
-class Wallet(shopperId: Long, cash: BigDecimal) extends PersistentActor
+class Wallet(shopperId: Long, cash: BigDecimal)
+    extends PersistentActor
     with ActorLogging {
-      import Wallet._
+  import Wallet._
   var amountSpent: BigDecimal = 0
 
   def persistenceId = s"${self.path.name}"
@@ -31,7 +32,7 @@ class Wallet(shopperId: Long, cash: BigDecimal) extends PersistentActor
   def receiveCommand = {
     case Pay(items, _) =>
       val totalSpent = addSpending(items)
-      if(cash - totalSpent > 0) {
+      if (cash - totalSpent > 0) {
         persist(Paid(items, shopperId)) { paid =>
           updateState(paid)
           sender() ! paid
@@ -39,7 +40,7 @@ class Wallet(shopperId: Long, cash: BigDecimal) extends PersistentActor
       } else {
         context.system.eventStream.publish(NotEnoughCash(cash - amountSpent))
       }
-    case Check(_) => sender() ! Cash(cash - amountSpent)
+    case Check(_)        => sender() ! Cash(cash - amountSpent)
     case SpentHowMuch(_) => sender() ! AmountSpent(amountSpent)
   }
 
@@ -52,7 +53,7 @@ class Wallet(shopperId: Long, cash: BigDecimal) extends PersistentActor
   }
 
   private def addSpending(items: List[Item]) =
-    amountSpent + items.foldLeft(BigDecimal(0)){ (total, item) =>
+    amountSpent + items.foldLeft(BigDecimal(0)) { (total, item) =>
       total + (item.unitPrice * item.number)
     }
 }

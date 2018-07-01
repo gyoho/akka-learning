@@ -5,7 +5,6 @@ import scala.concurrent.duration._
 
 import akka.actor._
 
-
 object JobWorker {
   def props = Props(new JobWorker)
 
@@ -14,8 +13,7 @@ object JobWorker {
   case object WorkLoadDepleted
 }
 
-class JobWorker extends Actor
-                   with ActorLogging {
+class JobWorker extends Actor with ActorLogging {
   import JobMaster._
   import JobWorker._
   import context._
@@ -57,7 +55,6 @@ class JobWorker extends Actor
       stop(self)
   }
 
-
   def retired(jobName: String): Receive = {
     case Terminated(master) =>
       log.error(s"Master terminated that ran Job ${jobName}, stopping self.")
@@ -66,11 +63,11 @@ class JobWorker extends Actor
   }
 
   def processTask(textPart: List[String]): Map[String, Int] = {
-    textPart.flatMap(_.split("\\W+"))
-      .foldLeft(Map.empty[String, Int]) {
-      (count, word) =>
+    textPart
+      .flatMap(_.split("\\W+"))
+      .foldLeft(Map.empty[String, Int]) { (count, word) =>
         if (word == "FAIL") throw new RuntimeException("SIMULATED FAILURE!")
         count + (word -> (count.getOrElse(word, 0) + 1))
-    }
+      }
   }
 }

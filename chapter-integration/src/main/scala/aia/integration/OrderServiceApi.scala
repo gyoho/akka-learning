@@ -14,13 +14,13 @@ import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 
-import scala.xml.{ Elem, XML, NodeSeq }
-import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._ 
+import scala.xml.{Elem, XML, NodeSeq}
+import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
 
 class OrderServiceApi(
-  system: ActorSystem, 
-  timeout: Timeout, 
-  val processOrders: ActorRef
+    system: ActorSystem,
+    timeout: Timeout,
+    val processOrders: ActorRef
 ) extends OrderService {
   implicit val requestTimeout = timeout
   implicit def executionContext = system.dispatcher
@@ -33,10 +33,7 @@ trait OrderService {
 
   implicit def requestTimeout: Timeout
 
-
   val routes = getOrder ~ postOrders
-
-
 
   def getOrder = get {
     pathPrefix("orders" / IntNumber) { id =>
@@ -46,14 +43,12 @@ trait OrderService {
             <id>{ result.id }</id>
             <status>{ result.status }</status>
           </statusResponse>)
-        
-        case result: NoSuchOrder => 
+
+        case result: NoSuchOrder =>
           complete(StatusCodes.NotFound)
       }
     }
   }
-
-  
 
   def postOrders = post {
     path("orders") {
@@ -67,15 +62,13 @@ trait OrderService {
                 <status>{ result.status }</status>
               </confirm>
             )
-        
+
           case result =>
             complete(StatusCodes.BadRequest)
         }
       }
     }
-  }  
-
-
+  }
 
   def toOrder(xml: NodeSeq): Order = {
     val order = xml \\ "order"

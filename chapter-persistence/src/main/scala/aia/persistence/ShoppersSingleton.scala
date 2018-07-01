@@ -1,6 +1,5 @@
 package aia.persistence
 
-
 import akka.actor._
 import akka.cluster.singleton.ClusterSingletonManager
 import akka.cluster.singleton.ClusterSingletonManagerSettings
@@ -27,8 +26,7 @@ class ShoppersSingleton extends Actor {
 
   val shoppers = context.system.actorOf(
     ClusterSingletonProxy.props(
-      singletonManager.path.child(Shoppers.name)
-        .toStringWithoutAddress,
+      singletonManager.path.child(Shoppers.name).toStringWithoutAddress,
       ClusterSingletonProxySettings(context.system)
         .withRole(None)
         .withSingletonName("shoppers-proxy")
@@ -40,8 +38,6 @@ class ShoppersSingleton extends Actor {
   }
 }
 
-
-
 object Shoppers {
   def props = Props(new Shoppers)
   def name = "shoppers"
@@ -50,8 +46,7 @@ object Shoppers {
   case class ShopperCreated(shopperId: Long)
 }
 
-class Shoppers extends PersistentActor
-    with ShopperLookup {
+class Shoppers extends PersistentActor with ShopperLookup {
   import Shoppers._
 
   def persistenceId = "shoppers"
@@ -59,8 +54,8 @@ class Shoppers extends PersistentActor
   def receiveCommand = forwardToShopper
 
   override def createAndForward(
-    cmd: Shopper.Command, 
-    shopperId: Long
+      cmd: Shopper.Command,
+      shopperId: Long
   ) = {
     val shopper = createShopper(shopperId)
     persistAsync(ShopperCreated(shopperId)) { _ =>
@@ -70,8 +65,8 @@ class Shoppers extends PersistentActor
 
   def receiveRecover = {
     case ShopperCreated(shopperId) =>
-      context.child(Shopper.name(shopperId))
+      context
+        .child(Shopper.name(shopperId))
         .getOrElse(createShopper(shopperId))
   }
 }
-

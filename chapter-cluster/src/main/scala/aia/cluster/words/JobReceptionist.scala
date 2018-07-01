@@ -6,7 +6,6 @@ import java.net.URLEncoder
 import akka.actor._
 import akka.actor.Terminated
 
-
 object JobReceptionist {
   def props = Props(new JobReceptionist)
   def name = "receptionist"
@@ -19,12 +18,13 @@ object JobReceptionist {
 
   case class WordCount(name: String, map: Map[String, Int])
 
-  case class Job(name: String, text: List[String], respondTo: ActorRef, jobMaster: ActorRef)
+  case class Job(name: String,
+                 text: List[String],
+                 respondTo: ActorRef,
+                 jobMaster: ActorRef)
 }
 
-class JobReceptionist extends Actor
-                         with ActorLogging
-                         with CreateMaster {
+class JobReceptionist extends Actor with ActorLogging with CreateMaster {
   import JobReceptionist._
   import JobMaster.StartJob
   import context._
@@ -36,12 +36,11 @@ class JobReceptionist extends Actor
   var retries = Map[String, Int]()
   val maxRetries = 3
 
-
   def receive: Receive = {
     case jr @ JobRequest(name, text) =>
       log.info(s"Received job $name")
 
-      val masterName = "master-"+URLEncoder.encode(name, "UTF8")
+      val masterName = "master-" + URLEncoder.encode(name, "UTF8")
       val jobMaster = createMaster(masterName)
 
       val job = Job(name, text, sender, jobMaster)
@@ -67,14 +66,18 @@ class JobReceptionist extends Actor
         log.error(s"Job ${name} failed.")
         val nrOfRetries = retries.getOrElse(name, 0)
 
-        if(maxRetries > nrOfRetries) {
-          if(nrOfRetries == maxRetries -1) {
+        if (maxRetries > nrOfRetries) {
+          if (nrOfRetries == maxRetries - 1) {
             // Simulating that the Job worker will work just before max retries
             val text = failedJob.text.filterNot(_.contains("FAIL"))
             self.tell(JobRequest(name, text), failedJob.respondTo)
-          } else self.tell(JobRequest(name, failedJob.text), failedJob.respondTo)
+          } else
+            self.tell(JobRequest(name, failedJob.text), failedJob.respondTo)
 
-          retries = retries + retries.get(name).map(r=> name -> (r + 1)).getOrElse(name -> 1)
+          retries = retries + retries
+            .get(name)
+            .map(r => name -> (r + 1))
+            .getOrElse(name -> 1)
         }
       }
   }

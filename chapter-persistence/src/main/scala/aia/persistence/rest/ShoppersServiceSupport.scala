@@ -25,22 +25,25 @@ trait ShoppersServiceSupport extends RequestTimeout {
     val host = settings.http.host
     val port = settings.http.port
 
-    implicit val ec = system.dispatcher  //bindAndHandle requires an implicit ExecutionContext
+    implicit val ec = system.dispatcher //bindAndHandle requires an implicit ExecutionContext
 
-    val api = new ShoppersService(shoppers, system, requestTimeout(config)).routes // the RestApi provides a Route
- 
+    val api =
+      new ShoppersService(shoppers, system, requestTimeout(config)).routes // the RestApi provides a Route
+
     implicit val materializer = ActorMaterializer()
     val bindingFuture: Future[ServerBinding] =
       Http().bindAndHandle(api, host, port)
-   
-    val log =  Logging(system.eventStream, "shoppers")
-    bindingFuture.map { serverBinding =>
-      log.info(s"Shoppers API bound to ${serverBinding.localAddress} ")
-    }.onFailure { 
-      case ex: Exception =>
-        log.error(ex, "Failed to bind to {}:{}!", host, port)
-        system.terminate()
-    }
+
+    val log = Logging(system.eventStream, "shoppers")
+    bindingFuture
+      .map { serverBinding =>
+        log.info(s"Shoppers API bound to ${serverBinding.localAddress} ")
+      }
+      .onFailure {
+        case ex: Exception =>
+          log.error(ex, "Failed to bind to {}:{}!", host, port)
+          system.terminate()
+      }
   }
 }
 

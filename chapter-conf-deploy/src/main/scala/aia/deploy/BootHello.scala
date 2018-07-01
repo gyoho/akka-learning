@@ -10,5 +10,6 @@ object BootHello extends App {
   val actor = system.actorOf(Props(new HelloWorld), "HelloWorkd")
   val config = system.settings.config
   val timer = config.getInt("helloWorld.timer")
-  system.actorOf(Props(new HelloWorldCaller(timer.millis, actor)), "HelloWorkdCaller")
+  system.actorOf(Props(new HelloWorldCaller(timer.millis, actor)),
+                 "HelloWorkdCaller")
 }

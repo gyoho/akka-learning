@@ -7,11 +7,9 @@ import concurrent.duration._
 import akka.util.Timeout
 //import concurrent.ExecutionContext.Implicits.global
 
-
 case class BookStatistics(val nameBook: String, nrSold: Int)
 case class StateBookStatistics(val sequence: Long,
-                            books: Map[String, BookStatistics])
-
+                               books: Map[String, BookStatistics])
 
 class BookStatisticsMgr(system: ActorSystem) {
   implicit val ex = system.dispatcher //todo: change chapter 2.2 =>2.3
@@ -24,8 +22,7 @@ class BookStatisticsMgr(system: ActorSystem) {
           bookState.copy(nrSold = bookState.nrSold + nrSold)
         case None => new BookStatistics(book, nrSold)
       }
-      oldState.copy(oldState.sequence + 1,
-        oldState.books + (book -> bookStat))
+      oldState.copy(oldState.sequence + 1, oldState.books + (book -> bookStat))
     })
   }
 
@@ -37,8 +34,7 @@ class BookStatisticsMgr(system: ActorSystem) {
           bookState.copy(nrSold = bookState.nrSold + nrSold)
         case None => new BookStatistics(book, nrSold)
       }
-      oldState.copy(oldState.sequence + 1,
-        oldState.books + (book -> bookStat))
+      oldState.copy(oldState.sequence + 1, oldState.books + (book -> bookStat))
     })
     Await.result(future, 1 second)
   }

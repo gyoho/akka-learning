@@ -7,7 +7,6 @@ import akka.actor._
 import akka.cluster.routing._
 import akka.routing._
 
-
 object JobMaster {
   def props = Props(new JobMaster)
 
@@ -21,9 +20,7 @@ object JobMaster {
   case object MergeResults
 }
 
-class JobMaster extends Actor
-                   with ActorLogging
-                   with CreateWorkerRouter {
+class JobMaster extends Actor with ActorLogging with CreateWorkerRouter {
   import JobReceptionist.WordCount
   import JobMaster._
   import JobWorker._
@@ -45,7 +42,10 @@ class JobMaster extends Actor
   def idle: Receive = {
     case StartJob(jobName, text) =>
       textParts = text.grouped(10).toVector
-      val cancellable = context.system.scheduler.schedule(0 millis, 1000 millis, router, Work(jobName, self))
+      val cancellable = context.system.scheduler.schedule(0 millis,
+                                                          1000 millis,
+                                                          router,
+                                                          Work(jobName, self))
       context.setReceiveTimeout(60 seconds)
       become(working(jobName, sender, cancellable))
   }
@@ -55,10 +55,10 @@ class JobMaster extends Actor
               cancellable: Cancellable): Receive = {
     case Enlist(worker) =>
       watch(worker)
-      workers  = workers + worker
+      workers = workers + worker
 
     case NextTask =>
-      if(textParts.isEmpty) {
+      if (textParts.isEmpty) {
         sender() ! WorkLoadDepleted
       } else {
         sender() ! Task(textParts.head, self)
@@ -70,7 +70,7 @@ class JobMaster extends Actor
       intermediateResult = intermediateResult :+ countMap
       workReceived = workReceived + 1
 
-      if(textParts.isEmpty && workGiven == workReceived) {
+      if (textParts.isEmpty && workGiven == workReceived) {
         cancellable.cancel()
         become(finishing(jobName, receptionist, workers))
         setReceiveTimeout(Duration.Undefined)
@@ -78,7 +78,7 @@ class JobMaster extends Actor
       }
 
     case ReceiveTimeout =>
-      if(workers.isEmpty) {
+      if (workers.isEmpty) {
         log.info(s"No workers responded in time. Cancelling job $jobName.")
         stop(self)
       } else setReceiveTimeout(Duration.Undefined)
@@ -97,27 +97,33 @@ class JobMaster extends Actor
       receptionist ! WordCount(jobName, mergedMap)
 
     case Terminated(worker) =>
-      log.info(s"Job $jobName is finishing. Worker ${worker.path.name} is stopped.")
+      log.info(
+        s"Job $jobName is finishing. Worker ${worker.path.name} is stopped.")
   }
 
   def merge(): Map[String, Int] = {
-    intermediateResult.foldLeft(Map[String, Int]()) {
-      (el, acc) =>
-        el.map {
-          case (word, count) =>
-            acc.get(word).map(accCount => (word -> (accCount + count))).getOrElse(word -> count)
-        } ++ (acc -- el.keys)
+    intermediateResult.foldLeft(Map[String, Int]()) { (el, acc) =>
+      el.map {
+        case (word, count) =>
+          acc
+            .get(word)
+            .map(accCount => (word -> (accCount + count)))
+            .getOrElse(word -> count)
+      } ++ (acc -- el.keys)
     }
   }
 }
 
-
 trait CreateWorkerRouter { this: Actor =>
   def createWorkerRouter: ActorRef = {
     context.actorOf(
-      ClusterRouterPool(BroadcastPool(10), ClusterRouterPoolSettings(
-        totalInstances = 100, maxInstancesPerNode = 20,
-        allowLocalRoutees = false, useRole = None)).props(Props[JobWorker]),
-      name = "worker-router")
+      ClusterRouterPool(
+        BroadcastPool(10),
+        ClusterRouterPoolSettings(totalInstances = 100,
+                                  maxInstancesPerNode = 20,
+                                  allowLocalRoutees = false,
+                                  useRole = None)).props(Props[JobWorker]),
+      name = "worker-router"
+    )
   }
 }

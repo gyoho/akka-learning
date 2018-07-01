@@ -6,7 +6,7 @@ import akka.routing._
 class TestSuper() extends Actor {
   def receive: Receive = {
     case "OK" =>
-    case _ => throw new IllegalArgumentException("not supported")
+    case _    => throw new IllegalArgumentException("not supported")
   }
 
   override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
@@ -20,8 +20,8 @@ class GetLicenseCreator(nrActors: Int, nextStep: ActorRef) extends Actor {
 
   override def preStart(): Unit = {
     super.preStart()
-    createdActors = (0 until  nrActors).map(nr => {
-      context.actorOf(Props(new GetLicense(nextStep)), "GetLicense"+nr)
+    createdActors = (0 until nrActors).map(nr => {
+      context.actorOf(Props(new GetLicense(nextStep)), "GetLicense" + nr)
     })
   }
 
@@ -43,20 +43,22 @@ class GetLicenseCreator2(nrActors: Int, nextStep: ActorRef) extends Actor {
   //restart children
   override def preStart(): Unit = {
     super.preStart()
-    (0 until  nrActors).map(nr => {
-      val child = context.actorOf(Props(new GetLicense(nextStep)), "GetLicense"+nr)
+    (0 until nrActors).map(nr => {
+      val child =
+        context.actorOf(Props(new GetLicense(nextStep)), "GetLicense" + nr)
       context.watch(child)
     })
   }
 
   def receive: Receive = {
     case "KillFirst" => {
-      if(!context.children.isEmpty) {
+      if (!context.children.isEmpty) {
         context.children.head ! PoisonPill
       }
     }
     case Terminated(child) => {
-      val newChild = context.actorOf(Props(new GetLicense(nextStep)), child.path.name)
+      val newChild =
+        context.actorOf(Props(new GetLicense(nextStep)), child.path.name)
       context.watch(newChild)
     }
   }
@@ -69,13 +71,14 @@ class GetLicenseCreator2(nrActors: Int, nextStep: ActorRef) extends Actor {
 
 case class PreferredSize(size: Int)
 
-class WrongDynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef) extends Actor {
+class WrongDynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef)
+    extends Actor {
   var nrChildren = nrActors
 
   //restart children
   override def preStart(): Unit = {
     super.preStart()
-    (0 until  nrChildren).map(nr => createRoutee())
+    (0 until nrChildren).map(nr => createRoutee())
   }
 
   def createRoutee(): Unit = {
@@ -88,10 +91,12 @@ class WrongDynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef) ext
       if (size < nrChildren) {
         //remove
         println("Delete %d children".format(nrChildren - size))
-        context.children.take(nrChildren - size).foreach(ref => {
-          println("delete: "+ ref)
-          router ! RemoveRoutee(ActorRefRoutee(ref))
-        })
+        context.children
+          .take(nrChildren - size)
+          .foreach(ref => {
+            println("delete: " + ref)
+            router ! RemoveRoutee(ActorRefRoutee(ref))
+          })
         router ! GetRoutees
       } else {
         (nrChildren until size).map(nr => createRoutee())
@@ -100,13 +105,14 @@ class WrongDynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef) ext
     }
     case routees: Routees => {
       import collection.JavaConversions._
-      val active = routees.getRoutees.map{
-        case x: ActorRefRoutee => x.ref.path.toString
+      val active = routees.getRoutees.map {
+        case x: ActorRefRoutee       => x.ref.path.toString
         case x: ActorSelectionRoutee => x.selection.pathString
       }
-      println("Active: "+ active)
-      val notUsed = context.children.filterNot(routee => active.contains(routee.path.toString))
-      println("Not used: "+ notUsed)
+      println("Active: " + active)
+      val notUsed = context.children.filterNot(routee =>
+        active.contains(routee.path.toString))
+      println("Not used: " + notUsed)
       notUsed.foreach(context.stop(_))
     }
   }
@@ -117,17 +123,15 @@ class WrongDynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef) ext
   }
 }
 
-
-class DynamicRouteeSizer(nrActors: Int,
-                         props: Props,
-                         router: ActorRef) extends Actor {
+class DynamicRouteeSizer(nrActors: Int, props: Props, router: ActorRef)
+    extends Actor {
   var nrChildren = nrActors
   var childInstanceNr = 0
 
   //restart children
   override def preStart(): Unit = {
     super.preStart()
-    (0 until  nrChildren).map(nr => createRoutee())
+    (0 until nrChildren).map(nr => createRoutee())
   }
 
   def createRoutee(): Unit = {
@@ -142,10 +146,12 @@ class DynamicRouteeSizer(nrActors: Int,
     case PreferredSize(size) => {
       if (size < nrChildren) {
         //remove
-        context.children.take(nrChildren - size).foreach(ref => {
-          val selection = context.actorSelection(ref.path)
-          router ! RemoveRoutee(ActorSelectionRoutee(selection))
-        })
+        context.children
+          .take(nrChildren - size)
+          .foreach(ref => {
+            val selection = context.actorSelection(ref.path)
+            router ! RemoveRoutee(ActorSelectionRoutee(selection))
+          })
         router ! GetRoutees
       } else {
         (nrChildren until size).map(nr => createRoutee())
@@ -155,12 +161,12 @@ class DynamicRouteeSizer(nrActors: Int,
     case routees: Routees => {
       //translate Routees into a actorPath
       import collection.JavaConversions._
-      val active = routees.getRoutees.map{
-        case x: ActorRefRoutee => x.ref.path.toString
+      val active = routees.getRoutees.map {
+        case x: ActorRefRoutee       => x.ref.path.toString
         case x: ActorSelectionRoutee => x.selection.pathString
       }
       //process the routee list
-      for(routee <- context.children) {
+      for (routee <- context.children) {
         val index = active.indexOf(routee.path.toStringWithoutAddress)
         if (index >= 0) {
           active.remove(index)
@@ -171,7 +177,7 @@ class DynamicRouteeSizer(nrActors: Int,
       }
       //active contains the terminated routees
       for (terminated <- active) {
-        val name = terminated.substring(terminated.lastIndexOf("/")+1)
+        val name = terminated.substring(terminated.lastIndexOf("/") + 1)
         val child = context.actorOf(props, name)
         context.watch(child)
       }
@@ -180,14 +186,14 @@ class DynamicRouteeSizer(nrActors: Int,
   }
 }
 
-
-class DynamicRouteeSizer2(nrActors: Int, props: Props, router: ActorRef) extends Actor {
+class DynamicRouteeSizer2(nrActors: Int, props: Props, router: ActorRef)
+    extends Actor {
   var nrChildren = nrActors
 
   //restart children
   override def preStart(): Unit = {
     super.preStart()
-    (0 until  nrChildren).map(nr => createRoutee())
+    (0 until nrChildren).map(nr => createRoutee())
   }
 
   def createRoutee(): Unit = {
@@ -195,7 +201,7 @@ class DynamicRouteeSizer2(nrActors: Int, props: Props, router: ActorRef) extends
     val selection = context.actorSelection(child.path)
     router ! AddRoutee(ActorSelectionRoutee(selection))
     context.watch(child)
-    println("Add routee "+ child)
+    println("Add routee " + child)
   }
 
   def receive: Receive = {
@@ -204,10 +210,12 @@ class DynamicRouteeSizer2(nrActors: Int, props: Props, router: ActorRef) extends
       if (size < currentNumber) {
         //remove
         println("Delete %d children".format(currentNumber - size))
-        context.children.take(currentNumber - size).foreach(ref => {
-          println("delete: "+ ref)
-          context.stop(ref)
-        })
+        context.children
+          .take(currentNumber - size)
+          .foreach(ref => {
+            println("delete: " + ref)
+            context.stop(ref)
+          })
       } else {
         (currentNumber until size).map(nr => createRoutee())
       }
@@ -216,8 +224,8 @@ class DynamicRouteeSizer2(nrActors: Int, props: Props, router: ActorRef) extends
     case routees: Routees => {
 
       println("routees " + routees)
-      if(routees.getRoutees.size() < nrChildren) {
-        ( routees.getRoutees.size() until nrChildren).map(nr => createRoutee())
+      if (routees.getRoutees.size() < nrChildren) {
+        (routees.getRoutees.size() until nrChildren).map(nr => createRoutee())
       }
 
     }

@@ -75,7 +75,8 @@ package dbstrategy1 {
   }
 
   object FileWatcher {
-    def props(source: String, logProcessor: ActorRef) = Props(new FileWatcher(source, logProcessor))
+    def props(source: String, logProcessor: ActorRef) =
+      Props(new FileWatcher(source, logProcessor))
     def name = s"file-watcher-${UUID.randomUUID.toString}"
 
     case class NewFile(file: File, timeAdded: Long)
