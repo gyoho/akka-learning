@@ -4,7 +4,7 @@ import aia.stream.basics.StreamingCopy.{sink, source}
 import akka.Done
 import akka.stream.IOResult
 import akka.stream.scaladsl.{Keep, RunnableGraph}
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
