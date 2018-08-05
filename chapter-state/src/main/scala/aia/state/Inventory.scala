@@ -1,6 +1,6 @@
 package aia.state
 
-import akka.actor.{ ActorRef, Actor, FSM }
+import akka.actor.{ActorRef, Actor, FSM}
 import math.min
 import scala.concurrent.duration._
 
@@ -36,19 +36,16 @@ class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
     *   - state name
     *   - partial function to handle all the possible events
     */
-
   /**
     * final case class Event(event: Any, stateData: D)
     *   - event: possible events i.e) BookRequest, BookSupply, etc
     *   - stateData: StateData defined above
     */
-
   // Declares transitions for state WaitForRequests
   when(WaitForRequests) {
 
     // Declares possible Event when a BookRequest message occurs
     case Event(request: BookRequest, data: StateData) =>
-
       val newStateData = data.copy(pendingRequests = data.pendingRequests :+ request)
 
       if (newStateData.nrBooksInStore > 0) {
@@ -79,7 +76,10 @@ class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
   // Transition declaration of the state ProcessRequest
   when(ProcessRequest) {
     case Event(Done, data: StateData) =>
-      goto(WaitForRequests) using data.copy(nrBooksInStore = data.nrBooksInStore - 1, pendingRequests = data.pendingRequests.tail)
+      goto(WaitForRequests) using data.copy(
+        nrBooksInStore = data.nrBooksInStore - 1,
+        pendingRequests = data.pendingRequests.tail
+      )
   }
 
   // Transition declaration of the state SoldOut
@@ -109,69 +109,59 @@ class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
   initialize
 
   onTransition {
-    case _ -> WaitForRequests => {
+    case _ -> WaitForRequests =>
       if (nextStateData.pendingRequests.nonEmpty) {
         // go to next state
         self ! PendingRequests
       }
-    }
-    case _ -> WaitForPublisher => {
+    case _ -> WaitForPublisher =>
       //send request to publisher
       publisher ! PublisherRequest
-    }
-    case _ -> ProcessRequest => {
+    case _ -> ProcessRequest =>
       val request = nextStateData.pendingRequests.head
       reserveId += 1
-      request.target !
-        new BookReply(request.context, Right(reserveId))
+      request.target ! BookReply(request.context, Right(reserveId))
       self ! Done
-    }
-    case _ -> ProcessSoldOut => {
-      nextStateData.pendingRequests.foreach(request => {
-        request.target !
-          new BookReply(request.context, Left("SoldOut"))
-      })
+    case _ -> ProcessSoldOut =>
+      nextStateData.pendingRequests.foreach(request =>
+        request.target ! BookReply(request.context, Left("SoldOut"))
+      )
       self ! Done
-    }
   }
 }
 
+class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int) extends Actor {
 
-class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int)
-  extends Actor {
-
-  var nrLeft = totalNrBooks
+  var nrLeft: Int = totalNrBooks
   def receive: Receive = {
-    case PublisherRequest => {
+    case PublisherRequest =>
       if (nrLeft == 0)
         sender() ! BookSupplySoldOut
       else {
         val supply = min(nrBooksPerRequest, nrLeft)
         nrLeft -= supply
-        sender() ! new BookSupply(supply)
+        sender() ! BookSupply(supply)
       }
-    }
   }
 }
 
-
-class InventoryWithTimer(publisher: ActorRef) extends Actor
-  with FSM[State, StateData] {
+class InventoryWithTimer(publisher: ActorRef)
+    extends Actor
+    with FSM[State, StateData] {
 
   var reserveId = 0
-  startWith(WaitForRequests, new StateData(0, Seq()))
+  startWith(WaitForRequests, StateData(0, Seq()))
 
   when(WaitForRequests) {
-    case Event(request: BookRequest, data: StateData) => {
-      val newStateData = data.copy(
-        pendingRequests = data.pendingRequests :+ request)
+    case Event(request: BookRequest, data: StateData) =>
+      val newStateData =
+        data.copy(pendingRequests = data.pendingRequests :+ request)
       if (newStateData.nrBooksInStore > 0) {
         goto(ProcessRequest) using newStateData
       } else {
         goto(WaitForPublisher) using newStateData
       }
-    }
-    case Event(PendingRequests, data: StateData) => {
+    case Event(PendingRequests, data: StateData) =>
       if (data.pendingRequests.isEmpty) {
         stay
       } else if (data.nrBooksInStore > 0) {
@@ -179,73 +169,55 @@ class InventoryWithTimer(publisher: ActorRef) extends Actor
       } else {
         goto(WaitForPublisher)
       }
-    }
   }
-  when(WaitForPublisher, stateTimeout = 5 seconds) {
-    case Event(supply: BookSupply, data: StateData) => {
-      goto(ProcessRequest) using data.copy(
-        nrBooksInStore = supply.nrBooks)
-    }
-    case Event(BookSupplySoldOut, _) => {
+  when(WaitForPublisher, stateTimeout = 5.seconds) {
+    case Event(supply: BookSupply, data: StateData) =>
+      goto(ProcessRequest) using data.copy(nrBooksInStore = supply.nrBooks)
+    case Event(BookSupplySoldOut, _) =>
       goto(ProcessSoldOut)
-    }
     case Event(StateTimeout, _) => goto(WaitForRequests)
   }
   when(ProcessRequest) {
-    case Event(Done, data: StateData) => {
+    case Event(Done, data: StateData) =>
       goto(WaitForRequests) using data.copy(
         nrBooksInStore = data.nrBooksInStore - 1,
         pendingRequests = data.pendingRequests.tail)
-    }
   }
   when(SoldOut) {
-    case Event(request: BookRequest, data: StateData) => {
-      goto(ProcessSoldOut) using new StateData(0, Seq(request))
-    }
+    case Event(request: BookRequest, _: StateData) =>
+      goto(ProcessSoldOut) using StateData(0, Seq(request))
   }
   when(ProcessSoldOut) {
-    case Event(Done, data: StateData) => {
-      goto(SoldOut) using new StateData(0, Seq())
-    }
+    case Event(Done, _: StateData) =>
+      goto(SoldOut) using StateData(0, Seq())
   }
   whenUnhandled {
     // common code for all states
-    case Event(request: BookRequest, data: StateData) => {
-      stay using data.copy(
-        pendingRequests = data.pendingRequests :+ request)
-    }
-    case Event(e, s) => {
-      log.warning("received unhandled request {} in state {}/{}",
-        e, stateName, s)
+    case Event(request: BookRequest, data: StateData) =>
+      stay using data.copy(pendingRequests = data.pendingRequests :+ request)
+    case Event(e, s) =>
+      log.warning("received unhandled request {} in state {}/{}", e, stateName, s)
       stay
-    }
   }
   initialize
 
   onTransition {
-    case _ -> WaitForRequests => {
-      if (!nextStateData.pendingRequests.isEmpty) {
+    case _ -> WaitForRequests =>
+      if (nextStateData.pendingRequests.nonEmpty) {
         // go to next state
         self ! PendingRequests
       }
-    }
-    case _ -> WaitForPublisher => {
+    case _ -> WaitForPublisher =>
       //send request to publisher
       publisher ! PublisherRequest
-    }
-    case _ -> ProcessRequest => {
+    case _ -> ProcessRequest =>
       val request = nextStateData.pendingRequests.head
       reserveId += 1
-      request.target !
-        new BookReply(request.context, Right(reserveId))
+      request.target ! BookReply(request.context, Right(reserveId))
       self ! Done
-    }
-    case _ -> ProcessSoldOut => {
-      nextStateData.pendingRequests.foreach(request => {
-        request.target !
-          new BookReply(request.context, Left("SoldOut"))
-      })
+    case _ -> ProcessSoldOut =>
+      nextStateData.pendingRequests.foreach(request =>
+        request.target ! BookReply(request.context, Left("SoldOut")))
       self ! Done
-    }
   }
 }
