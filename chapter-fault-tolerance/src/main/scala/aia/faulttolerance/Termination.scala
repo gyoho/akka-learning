@@ -3,7 +3,7 @@ package aia.faulttolerance
 import akka.actor._
 import akka.actor.Terminated
 
-object DbStrategy2 {
+object Termination {
 
   class DbWatcher(dbWriter: ActorRef) extends Actor with ActorLogging {
     context.watch(dbWriter)

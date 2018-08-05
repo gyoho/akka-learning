@@ -9,11 +9,12 @@ import scala.concurrent.duration._
 import language.postfixOps
 
 //Note: Version 1 --> LogProcessingSupervisor supervises all [FileWatcher, LogProcessor, DbWriter] (pg.74 figure 4.7)
-package dbstrategy1 {
+//Note: Anti-Pattern (https://manuel.bernhardt.io/2016/08/09/akka-anti-patterns-flat-actor-hierarchies-or-mixing-business-logic-and-failure-handling/)
+package LogProcessingFlat {
 
   object LogProcessingApp extends App {
     val sources = Vector("file:///source1/", "file:///source2/")
-    val system = ActorSystem("logprocessing")
+    val system = ActorSystem("log-processing")
 
     val databaseUrl = "http://mydatabase1"
 
@@ -75,10 +76,10 @@ package dbstrategy1 {
   }
 
   object FileWatcher {
-    def props(source: String, logProcessor: ActorRef) =
-      Props(new FileWatcher(source, logProcessor))
+    def props(source: String, logProcessor: ActorRef) = Props(new FileWatcher(source, logProcessor))
     def name = s"file-watcher-${UUID.randomUUID.toString}"
 
+    //Key: messages are kept in the companion object of the respective actor
     case class NewFile(file: File, timeAdded: Long)
     case class SourceAbandoned(uri: String)
   }
@@ -120,10 +121,8 @@ package dbstrategy1 {
   }
 
   object DbWriter {
-    def props(databaseUrl: String) =
-      Props(new DbWriter(databaseUrl))
-    def name(databaseUrl: String) =
-      s"""db-writer-${databaseUrl.split("/").last}"""
+    def props(databaseUrl: String) = Props(new DbWriter(databaseUrl))
+    def name(databaseUrl: String) = s"""db-writer-${databaseUrl.split("/").last}"""
 
     // A line in the log file parsed by the LogProcessor Actor
     case class Line(time: Long, message: String, messageType: String)
@@ -143,6 +142,10 @@ package dbstrategy1 {
     override def postStop(): Unit = connection.close()
   }
 
+  // --------------------
+  //      Utilities
+  // --------------------
+
   class DbCon(url: String) {
 
     /**
@@ -160,23 +163,13 @@ package dbstrategy1 {
     }
   }
 
-  @SerialVersionUID(1L)
-  class DiskError(msg: String) extends Error(msg) with Serializable
+  case class DiskError(msg: String) extends Error(msg) with Serializable
 
-  @SerialVersionUID(1L)
-  class CorruptedFileException(msg: String, val file: File)
-      extends Exception(msg)
-      with Serializable
+  case class CorruptedFileException(msg: String, file: File) extends Exception(msg)
 
-  @SerialVersionUID(1L)
-  class DbBrokenConnectionException(msg: String)
-      extends Exception(msg)
-      with Serializable
+  case class DbBrokenConnectionException(msg: String) extends Exception(msg)
 
-  @SerialVersionUID(1L)
-  class DbNodeDownException(msg: String)
-      extends Exception(msg)
-      with Serializable
+  case class DbNodeDownException(msg: String) extends Exception(msg)
 
   trait LogParsing {
     import DbWriter._

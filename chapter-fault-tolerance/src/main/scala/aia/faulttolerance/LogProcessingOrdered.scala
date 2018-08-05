@@ -9,11 +9,10 @@ import scala.concurrent.duration._
 import language.postfixOps
 
 //Note: Version 2 --> Every actor creates and supervises child actors (pg.84 Figure 4.13)
-package dbstrategy2 {
-
+package LogProcessingOrdered {
   object LogProcessingApp extends App {
     val sources = Vector("file:///source1/", "file:///source2/")
-    val system = ActorSystem("logprocessing")
+    val system = ActorSystem("log-processing")
 
     val databaseUrls = Vector(
       "http://mydatabase1",
@@ -37,15 +36,17 @@ package dbstrategy2 {
       sources: Vector[String],
       databaseUrls: Vector[String]
   ) extends Actor
-      with ActorLogging {
+    with ActorLogging {
 
-    override def supervisorStrategy = AllForOneStrategy() {
+    // AllForOneStrategy: if any of the file watchers crashes with a DiskError, all file watchers (siblings) are stopped
+    override def supervisorStrategy: AllForOneStrategy = AllForOneStrategy() {
       case _: DiskError => Stop
     }
 
     var fileWatchers: Vector[ActorRef] = sources.map { source =>
       val fileWatcher = context.actorOf(
-        Props(new FileWatcher(source, databaseUrls))
+        FileWatcher.props(source, databaseUrls),
+        FileWatcher.name
       )
 
       //Key: monitor the actor's lifecycle, send the `Terminated` message when the actor is terminated
@@ -64,6 +65,9 @@ package dbstrategy2 {
   }
 
   object FileWatcher {
+    def props(source: String, databaseUrls: Vector[String]) = Props(new FileWatcher(source, databaseUrls))
+    def name = s"file-watcher-${UUID.randomUUID.toString}"
+
     case class NewFile(file: File, timeAdded: Long)
     case class SourceAbandoned(uri: String)
   }
@@ -74,11 +78,11 @@ package dbstrategy2 {
       with FileWatchingAbilities {
     register(source)
 
-    override def supervisorStrategy = OneForOneStrategy() {
+    override def supervisorStrategy: OneForOneStrategy = OneForOneStrategy() {
       case _: CorruptedFileException => Resume
     }
 
-    val logProcessor = context.actorOf(
+    val logProcessor: ActorRef = context.actorOf(
       LogProcessor.props(databaseUrls),
       LogProcessor.name
     )
@@ -99,8 +103,7 @@ package dbstrategy2 {
   }
 
   object LogProcessor {
-    def props(databaseUrls: Vector[String]) =
-      Props(new LogProcessor(databaseUrls))
+    def props(databaseUrls: Vector[String]) = Props(new LogProcessor(databaseUrls))
     def name = s"log_processor_${UUID.randomUUID.toString}"
     // represents a new log file
     case class LogFile(file: File)
@@ -115,12 +118,12 @@ package dbstrategy2 {
     val initialDatabaseUrl: String = databaseUrls.head
     var alternateDatabases: Vector[String] = databaseUrls.tail
 
-    override def supervisorStrategy = OneForOneStrategy() {
+    override def supervisorStrategy: OneForOneStrategy = OneForOneStrategy() {
       case _: DbBrokenConnectionException => Restart
       case _: DbNodeDownException         => Stop
     }
 
-    var dbWriter = context.actorOf(
+    var dbWriter: ActorRef = context.actorOf(
       DbWriter.props(initialDatabaseUrl),
       DbWriter.name(initialDatabaseUrl)
     )
@@ -150,17 +153,17 @@ package dbstrategy2 {
 
   object DbWriter {
     def props(databaseUrl: String) = Props(new DbWriter(databaseUrl))
-    def name(databaseUrl: String) =
-      s"""db-writer-${databaseUrl.split("/").last}"""
+    def name(databaseUrl: String) = s"""db-writer-${databaseUrl.split("/").last}"""
 
     // A line in the log file parsed by the LogProcessor Actor
     case class Line(time: Long, message: String, messageType: String)
   }
 
   class DbWriter(databaseUrl: String) extends Actor {
-    val connection = new DbCon(databaseUrl)
+    val connection: DbCon = new DbCon(databaseUrl)
 
     import DbWriter._
+
     def receive: Receive = {
       case Line(time, message, messageType) =>
         connection.write(
@@ -168,10 +171,15 @@ package dbstrategy2 {
         )
     }
 
+    //Key: clean up resources in `postStop`
     override def postStop(): Unit = {
       connection.close()
     }
   }
+
+  // --------------------
+  //      Utilities
+  // --------------------
 
   class DbCon(url: String) {
 
@@ -190,23 +198,17 @@ package dbstrategy2 {
     }
   }
 
-  @SerialVersionUID(1L)
-  class DiskError(msg: String) extends Error(msg) with Serializable
+  // Unrecoverable Error occurs when disk for the source has crashed
+  case class DiskError(msg: String) extends Error(msg)
 
-  @SerialVersionUID(1L)
-  class CorruptedFileException(msg: String, val file: File)
-      extends Exception(msg)
-      with Serializable
+  // Exception occurs when log file is corrupt and can’t be processed
+  case class CorruptedFileException(msg: String, file: File) extends Exception(msg)
 
-  @SerialVersionUID(1L)
-  class DbBrokenConnectionException(msg: String)
-      extends Exception(msg)
-      with Serializable
+  // Connection can be come back after certain time
+  case class DbBrokenConnectionException(msg: String) extends Exception(msg)
 
-  @SerialVersionUID(1L)
-  class DbNodeDownException(msg: String)
-      extends Exception(msg)
-      with Serializable
+  // Unrecoverable database node has fatally crashed
+  case class DbNodeDownException(msg: String) extends Exception(msg)
 
   trait LogParsing {
     import DbWriter._

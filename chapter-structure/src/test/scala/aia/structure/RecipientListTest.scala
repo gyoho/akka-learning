@@ -21,7 +21,8 @@ class RecipientListTest
       val endProbe3 = TestProbe()
       val list = Seq(endProbe1.ref, endProbe2.ref, endProbe3.ref)
       val actorRef = system.actorOf(
-        Props(new RecipientList(list)))
+        Props(new RecipientList(list))
+      )
       val msg = "message"
       actorRef ! msg
       endProbe1.expectMsg(msg)

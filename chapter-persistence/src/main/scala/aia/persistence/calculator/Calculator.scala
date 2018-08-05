@@ -24,11 +24,11 @@ object Calculator {
   case class Multiplied(value: Double) extends Event
 
   case class CalculationResult(result: Double = 0) {
-    def reset = copy(result = 0)
-    def add(value: Double) = copy(result = this.result + value)
-    def subtract(value: Double) = copy(result = this.result - value)
-    def divide(value: Double) = copy(result = this.result / value)
-    def multiply(value: Double) = copy(result = this.result * value)
+    def reset: CalculationResult = copy(result = 0)
+    def add(value: Double): CalculationResult = copy(result = this.result + value)
+    def subtract(value: Double): CalculationResult = copy(result = this.result - value)
+    def divide(value: Double): CalculationResult = copy(result = this.result / value)
+    def multiply(value: Double): CalculationResult = copy(result = this.result * value)
   }
 
 }
@@ -36,7 +36,7 @@ object Calculator {
 class Calculator extends PersistentActor with ActorLogging {
   import Calculator._
 
-  def persistenceId = Calculator.name
+  def persistenceId: String = Calculator.name
 
   var state = CalculationResult()
   // more code to follow ..
