@@ -36,6 +36,7 @@ class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
     *   - state name
     *   - partial function to handle all the possible events
     */
+
   /**
     * final case class Event(event: Any, stateData: D)
     *   - event: possible events i.e) BookRequest, BookSupply, etc
@@ -106,8 +107,6 @@ class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
       stay
   }
 
-  initialize
-
   onTransition {
     case _ -> WaitForRequests =>
       if (nextStateData.pendingRequests.nonEmpty) {
@@ -115,24 +114,30 @@ class Inventory(publisher: ActorRef) extends Actor with FSM[State, StateData] {
         self ! PendingRequests
       }
     case _ -> WaitForPublisher =>
-      //send request to publisher
+      // send request to publisher
       publisher ! PublisherRequest
     case _ -> ProcessRequest =>
       val request = nextStateData.pendingRequests.head
       reserveId += 1
+      // send a replay to sender
       request.target ! BookReply(request.context, Right(reserveId))
       self ! Done
     case _ -> ProcessSoldOut =>
+      // send an error replay to all PendingRequests
       nextStateData.pendingRequests.foreach(request =>
         request.target ! BookReply(request.context, Left("SoldOut"))
       )
       self ! Done
   }
+
+  // initialize and startup the FSM (required)
+  initialize
 }
 
 class Publisher(totalNrBooks: Int, nrBooksPerRequest: Int) extends Actor {
 
   var nrLeft: Int = totalNrBooks
+
   def receive: Receive = {
     case PublisherRequest =>
       if (nrLeft == 0)
